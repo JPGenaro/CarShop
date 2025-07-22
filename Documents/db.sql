@@ -1,8 +1,6 @@
--- Creación de la base de datos
 CREATE DATABASE IF NOT EXISTS carshop_db;
 USE carshop_db;
 
--- Tabla Address
 CREATE TABLE Address (
     id_address INT AUTO_INCREMENT PRIMARY KEY,
     province VARCHAR(100) NOT NULL,
@@ -13,7 +11,6 @@ CREATE TABLE Address (
     code VARCHAR(20)
 );
 
--- Tabla Document
 CREATE TABLE Document (
     id_document INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -21,21 +18,18 @@ CREATE TABLE Document (
     number VARCHAR(50) NOT NULL
 );
 
--- Tabla PaymentMethod
 CREATE TABLE PaymentMethod (
     id_paymentMethod INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     description VARCHAR(255)
 );
 
--- Tabla Category
 CREATE TABLE Category (
     id_category INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     description VARCHAR(255)
 );
 
--- Tabla Product
 CREATE TABLE Product (
     id_product INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -44,7 +38,6 @@ CREATE TABLE Product (
     FOREIGN KEY (category_id) REFERENCES Category(id_category)
 );
 
--- Tabla User
 CREATE TABLE User (
     id_user INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -60,7 +53,6 @@ CREATE TABLE User (
     FOREIGN KEY (document_id) REFERENCES Document(id_document)
 );
 
--- Tabla Order
 CREATE TABLE `Order` (
     id_order INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -72,7 +64,6 @@ CREATE TABLE `Order` (
     FOREIGN KEY (paymentMethod_id) REFERENCES PaymentMethod(id_paymentMethod)
 );
 
--- Tabla OrderProduct (tabla intermedia para relación muchos a muchos)
 CREATE TABLE OrderProduct (
     id_orderProduct INT AUTO_INCREMENT PRIMARY KEY,
     precio_final DECIMAL(10,2) NOT NULL,
