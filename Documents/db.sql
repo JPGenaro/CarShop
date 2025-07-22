@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS carshop_db;
 CREATE DATABASE IF NOT EXISTS carshop_db;
 USE carshop_db;
 
@@ -59,9 +60,9 @@ CREATE TABLE `Order` (
     description VARCHAR(255),
     force_date DATE NOT NULL,
     user_id INT NOT NULL,
-    paymentMethod_id INT NOT NULL,
+    payment_method_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User(id_user),
-    FOREIGN KEY (paymentMethod_id) REFERENCES PaymentMethod(id_paymentMethod)
+    FOREIGN KEY (payment_method_id) REFERENCES PaymentMethod(id_payment_method)
 );
 
 CREATE TABLE OrderProduct (
