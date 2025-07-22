@@ -3,50 +3,50 @@ USE carshop_db;
 
 CREATE TABLE Address (
     id_address INT AUTO_INCREMENT PRIMARY KEY,
-    province VARCHAR(100) NOT NULL,
-    location VARCHAR(100) NOT NULL,
-    district VARCHAR(100) NOT NULL,
-    logish1 VARCHAR(255) NOT NULL,
-    order_possible BOOLEAN DEFAULT TRUE,
-    code VARCHAR(20)
+    province VARCHAR(50) NOT NULL,
+    location VARCHAR(50) NOT NULL,
+    district VARCHAR(50) NOT NULL,
+    height VARCHAR(10) NOT NULL,
+    postal_code VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE Document (
     id_document INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
-    number VARCHAR(50) NOT NULL
+    number_document VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE PaymentMethod (
-    id_paymentMethod INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
+    id_payment_method INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     description VARCHAR(255)
 );
 
 CREATE TABLE Category (
     id_category INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
     description VARCHAR(255)
 );
 
 CREATE TABLE Product (
     id_product INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    choice INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    price INT NOT NULL,
+    stock INT NOT NULL,
     category_id INT NOT NULL,
     FOREIGN KEY (category_id) REFERENCES Category(id_category)
 );
 
 CREATE TABLE User (
     id_user INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    surname VARCHAR(100) NOT NULL,
-    name_user VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    name VARCHAR(20) NOT NULL,
+    surname VARCHAR(20) NOT NULL,
+    name_user VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(30) NOT NULL,
     birth_date DATE NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(50) NOT NULL UNIQUE,
     address_id INT NOT NULL,
     document_id INT NOT NULL,
     FOREIGN KEY (address_id) REFERENCES Address(id_address),
@@ -66,8 +66,8 @@ CREATE TABLE `Order` (
 
 CREATE TABLE OrderProduct (
     id_orderProduct INT AUTO_INCREMENT PRIMARY KEY,
-    precio_final DECIMAL(10,2) NOT NULL,
-    cantidad_final INT NOT NULL,
+    final_price DECIMAL(10,2) NOT NULL,
+    final_quantity INT NOT NULL,
     product_id INT NOT NULL,
     order_id INT NOT NULL,
     FOREIGN KEY (product_id) REFERENCES Product(id_product),
