@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'carshop_app',
 ]
 
 MIDDLEWARE = [
@@ -120,3 +121,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'carshop_app.User' # tupasswordseguro
+
+# Configuración de zona horaria (ajusta según tu ubicación)
+TIME_ZONE = 'America/Argentina/Buenos_Aires'  # Ejemplo para Argentina
+USE_TZ = True
