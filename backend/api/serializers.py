@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from .models import Categoria, Repuesto
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -24,3 +25,23 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data.get('last_name', ''),
         )
         return user
+
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = ('id', 'name', 'slug', 'description')
+
+
+class RepuestoSerializer(serializers.ModelSerializer):
+    category = CategoriaSerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        source='category', queryset=Categoria.objects.all(), write_only=True
+    )
+
+    class Meta:
+        model = Repuesto
+        fields = (
+            'id', 'name', 'sku', 'description', 'price', 'stock', 'image', 'category', 'category_id', 'created_at', 'updated_at'
+        )
+        read_only_fields = ('created_at', 'updated_at')

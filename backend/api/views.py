@@ -1,6 +1,12 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, viewsets
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, RegisterSerializer
+from .serializers import (
+    UserSerializer,
+    RegisterSerializer,
+    CategoriaSerializer,
+    RepuestoSerializer,
+)
+from .models import Categoria, Repuesto
 
 
 class RegisterView(generics.CreateAPIView):
@@ -15,3 +21,15 @@ class MeView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class CategoriaViewSet(viewsets.ModelViewSet):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+class RepuestoViewSet(viewsets.ModelViewSet):
+    queryset = Repuesto.objects.select_related('category').all()
+    serializer_class = RepuestoSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
