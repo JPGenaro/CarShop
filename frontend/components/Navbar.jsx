@@ -1,22 +1,11 @@
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { getAccessToken, logout, fetchWithAuth } from '../lib/auth'
+import { useAuth } from '../context/AuthContext'
 
 export default function Navbar() {
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
-    const token = getAccessToken()
-    if (!token) return
-    // fetch current user
-    fetchWithAuth('/auth/me/', {
-      method: 'GET',
-    }).then(res => res.json()).then(data => setUser(data)).catch(() => setUser(null))
-  }, [])
+  const { user, logout } = useAuth()
 
   function handleLogout() {
     logout()
-    setUser(null)
     // reload to update UI
     window.location.href = '/'
   }
@@ -32,6 +21,8 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           {user ? (
             <>
+              <Link href="/repuestos/new" className="text-sm text-gray-700 hover:text-blue-600">+ Nuevo</Link>
+              <Link href="/mi-cuenta" className="text-sm text-gray-700">Mi cuenta</Link>
               <span className="text-sm text-gray-700">Hola, {user.username}</span>
               <button onClick={handleLogout} className="text-sm text-red-600">Cerrar sesión</button>
             </>

@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { login } from '../lib/auth'
+import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const router = useRouter()
+  const { login } = useAuth()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -17,6 +18,7 @@ export default function LoginPage() {
       await login(username, password)
       router.push('/')
     } catch (err) {
+      console.error(err)
       setError('Credenciales incorrectas')
     }
   }

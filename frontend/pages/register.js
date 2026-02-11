@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { register, login } from '../lib/auth'
+import { register } from '../lib/auth'
+import { useAuth } from '../context/AuthContext'
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('')
@@ -10,16 +11,18 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const router = useRouter()
+  const { login } = useAuth()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     try {
       await register({ username, email, password })
-      // auto-login
+      // auto-login using auth context
       await login(username, password)
       router.push('/')
     } catch (err) {
+      console.error(err)
       setError(err.detail || 'Error registrando usuario')
     }
   }
