@@ -1,0 +1,23 @@
+# Backend-specific ignores
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+pip-wheel-metadata/
+venv/
+.venv/
+env/
+.env
+*.sqlite3
+db.sqlite3
+
+# Django
+staticfiles/
+media/
+
+# Editor/IDE
+.vscode/
+.idea/
