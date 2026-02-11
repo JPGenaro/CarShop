@@ -27,9 +27,20 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    filterset_fields = ('name', 'slug')
+    search_fields = ('name', 'description')
+    ordering_fields = ('name',)
 
 
 class RepuestoViewSet(viewsets.ModelViewSet):
     queryset = Repuesto.objects.select_related('category').all()
     serializer_class = RepuestoSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    filterset_fields = {
+        'price': ['exact', 'lt', 'gt', 'lte', 'gte'],
+        'stock': ['exact', 'lt', 'gt', 'lte', 'gte'],
+        'category': ['exact'],
+        'sku': ['exact'],
+    }
+    search_fields = ('name', 'description', 'sku')
+    ordering_fields = ('price', 'created_at', 'name')

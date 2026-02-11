@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
+    path('grappelli/', include('grappelli.urls')),
     path('admin/', admin.site.urls),
     path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
