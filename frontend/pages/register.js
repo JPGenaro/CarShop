@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import { register, login } from '../lib/auth'
 
 export default function RegisterPage() {
@@ -24,21 +25,24 @@ export default function RegisterPage() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <main className="container py-8">
-        <h1 className="text-2xl font-bold mb-4">Register</h1>
-        <form onSubmit={handleSubmit} className="max-w-md">
-          <label className="block mb-2">Usuario</label>
-          <input value={username} onChange={e=>setUsername(e.target.value)} className="w-full border rounded px-3 py-2 mb-4" />
-          <label className="block mb-2">Email</label>
-          <input value={email} onChange={e=>setEmail(e.target.value)} className="w-full border rounded px-3 py-2 mb-4" />
-          <label className="block mb-2">Contraseña</label>
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full border rounded px-3 py-2 mb-4" />
-          {error && <p className="text-red-600 mb-2">{error}</p>}
-          <button className="bg-green-600 text-white px-4 py-2 rounded">Registrar</button>
-        </form>
+      <main className="flex-1 flex items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-bold mb-4 text-center">Crear cuenta</h1>
+          <form onSubmit={handleSubmit} className="">
+            <label className="block mb-2 text-sm font-medium">Usuario</label>
+            <input value={username} onChange={e=>setUsername(e.target.value)} className="w-full border rounded px-3 py-2 mb-4" />
+            <label className="block mb-2 text-sm font-medium">Email</label>
+            <input value={email} onChange={e=>setEmail(e.target.value)} className="w-full border rounded px-3 py-2 mb-4" />
+            <label className="block mb-2 text-sm font-medium">Contraseña</label>
+            <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full border rounded px-3 py-2 mb-4" />
+            {error && <p className="text-red-600 mb-2">{error}</p>}
+            <button className="w-full bg-green-600 text-white px-4 py-2 rounded">Registrar</button>
+          </form>
+        </div>
       </main>
+      <Footer />
     </div>
   )
 }

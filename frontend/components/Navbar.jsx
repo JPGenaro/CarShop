@@ -22,21 +22,23 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow">
-      <div className="container flex items-center justify-between h-16">
-        <Link href="/" className="text-xl font-semibold">
-          Carshop
+    <nav className="bg-white shadow-sm">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">C</div>
+          <span className="text-lg font-semibold">Carshop</span>
         </Link>
-        <div>
+
+        <div className="flex items-center gap-4">
           {user ? (
             <>
-              <span className="mr-4 text-sm text-gray-700">Hola, {user.username}</span>
+              <span className="text-sm text-gray-700">Hola, {user.username}</span>
               <button onClick={handleLogout} className="text-sm text-red-600">Cerrar sesión</button>
             </>
           ) : (
             <>
-              <Link href="/login" className="mr-4 text-sm text-gray-600">Login</Link>
-              <Link href="/register" className="text-sm text-gray-600">Register</Link>
+              <Link href="/login" className="text-sm text-gray-700 hover:text-blue-600">Login</Link>
+              <Link href="/register" className="text-sm text-white bg-blue-600 px-3 py-1 rounded-md hover:opacity-95">Registrarse</Link>
             </>
           )}
         </div>
