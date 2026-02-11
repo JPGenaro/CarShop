@@ -31,3 +31,20 @@ Endpoints de autenticación:
 - `POST /api/auth/token/refresh/` : refrescar access
 - `GET /api/auth/me/` : información del usuario autenticado
 
+Seed / datos de ejemplo
+
+Este proyecto incluye un comando de administración para poblar la base de datos con categorías, repuestos y usuarios de ejemplo:
+
+```bash
+python manage.py seed_db --force
+```
+
+El comando crea:
+- Varias `Categoria` (Frenos, Motor, Suspensión, ...)
+- Múltiples `Repuesto` por categoría con `sku`, `price`, `stock` y `image` placeholder
+- Usuarios de ejemplo: `admin` (superuser `adminpass`) y `juan` (`secret`)
+
+Admin UI
+- Grappelli disponible en `/grappelli/` para una UI de administración más amigable.
+
+
