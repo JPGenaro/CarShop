@@ -19,6 +19,9 @@ class Categoria(models.Model):
 class Repuesto(models.Model):
 	category = models.ForeignKey(Categoria, related_name='repuestos', on_delete=models.CASCADE)
 	name = models.CharField(max_length=200)
+	brand = models.CharField(max_length=100, blank=True)
+	model = models.CharField(max_length=100, blank=True)
+	year = models.PositiveIntegerField(blank=True, null=True)
 	sku = models.CharField(max_length=50, blank=True, unique=True, null=True)
 	description = models.TextField(blank=True)
 	price = models.DecimalField(max_digits=10, decimal_places=2)

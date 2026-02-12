@@ -12,6 +12,7 @@ function truncate(text, n = 120) {
 export default function RepuestoCard({ item }) {
   const router = useRouter()
   const { user } = useAuth()
+  const meta = [item.brand, item.model, item.year].filter(Boolean).join(' • ')
 
   async function handleDelete() {
     if (!confirm('¿Eliminar este repuesto?')) return
@@ -40,10 +41,10 @@ export default function RepuestoCard({ item }) {
       )}
       <h3 className="text-lg font-semibold text-gray-100">{item.name}</h3>
       <p className="text-sm text-gray-400">SKU: {item.sku || '—'}</p>
+      {meta && <p className="text-sm text-gray-400">{meta}</p>}
       <p className="mt-2 text-orange-400 font-bold text-lg">${item.price}</p>
       <p className="text-sm text-gray-400 mt-2">{truncate(item.description)}</p>
-      <div className="flex items-center justify-between mt-4">
-        <div className="text-sm text-gray-300">{item.stock > 0 ? `Stock: ${item.stock}` : <span className="text-red-400">Agotado</span>}</div>
+      <div className="flex items-center justify-end mt-4">
         <div className="flex items-center gap-2">
           <Link href={`/repuestos/${item.id}`} className="text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md shadow-md shadow-red-500/20">Ver</Link>
           {user && (

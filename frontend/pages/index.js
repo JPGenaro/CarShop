@@ -166,7 +166,7 @@ export default function Home() {
               </motion.div>
             </AnimatePresence>
 
-            <div className="mt-8">
+            <div className="mt-8 flex justify-center">
               <Pagination total={count} page={page} onPage={p => setPage(p)} />
             </div>
           </>

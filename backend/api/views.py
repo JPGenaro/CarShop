@@ -42,6 +42,9 @@ class RepuestoViewSet(viewsets.ModelViewSet):
         'stock': ['exact', 'lt', 'gt', 'lte', 'gte'],
         'category': ['exact'],
         'sku': ['exact'],
+        'brand': ['exact'],
+        'model': ['exact'],
+        'year': ['exact', 'lt', 'gt', 'lte', 'gte'],
     }
-    search_fields = ('name', 'description', 'sku')
-    ordering_fields = ('price', 'created_at', 'name')
+    search_fields = ('name', 'description', 'sku', 'brand', 'model')
+    ordering_fields = ('price', 'created_at', 'name', 'year')

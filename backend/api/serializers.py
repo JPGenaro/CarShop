@@ -43,6 +43,6 @@ class RepuestoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repuesto
         fields = (
-            'id', 'name', 'sku', 'description', 'price', 'stock', 'image', 'category', 'category_id', 'created_at', 'updated_at'
+            'id', 'name', 'brand', 'model', 'year', 'sku', 'description', 'price', 'stock', 'image', 'category', 'category_id', 'created_at', 'updated_at'
         )
         read_only_fields = ('created_at', 'updated_at')

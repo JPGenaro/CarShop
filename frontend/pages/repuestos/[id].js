@@ -47,10 +47,14 @@ export default function RepuestoDetail() {
               <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Detalle técnico</p>
               <h1 className="mt-3 text-3xl font-bold text-gray-100">{item.name}</h1>
               <p className="text-sm text-gray-400 mt-1">SKU: {item.sku || '—'}</p>
+              {(item.brand || item.model || item.year) && (
+                <p className="text-sm text-gray-400 mt-1">
+                  {[item.brand, item.model, item.year].filter(Boolean).join(' • ')}
+                </p>
+              )}
               <p className="mt-4 text-gray-300 leading-relaxed">{item.description}</p>
               <div className="mt-6 flex flex-wrap items-center gap-4">
                 <span className="text-2xl font-semibold text-orange-400">${item.price}</span>
-                <span className="text-sm text-gray-300">Stock: {item.stock}</span>
               </div>
             </div>
           </motion.div>

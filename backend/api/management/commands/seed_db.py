@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from api.models import Categoria, Repuesto
-import random
 
 
 class Command(BaseCommand):
@@ -18,79 +17,292 @@ class Command(BaseCommand):
             Repuesto.objects.all().delete()
             Categoria.objects.all().delete()
 
-        categories = [
-            'Frenos',
-            'Motor',
-            'Suspensión',
-            'Iluminación',
-            'Transmisión',
-            'Electricidad',
-            'Carrocería',
-            'Aceites y Fluidos',
-            'Herramientas',
-            'Accesorios',
-        ]
+        categories = {
+            'Frenos': 'Componentes de frenado de alto rendimiento.',
+            'Motor': 'Piezas críticas del tren motriz y mantenimiento.',
+            'Suspensión': 'Amortiguación y estabilidad del vehículo.',
+            'Iluminación': 'Ópticas, lámparas y señalización.',
+            'Transmisión': 'Componentes para caja y embrague.',
+            'Electricidad': 'Arranque, carga y sensores.',
+            'Carrocería': 'Partes exteriores y detalles estéticos.',
+            'Aceites y Fluidos': 'Lubricantes, refrigerantes y fluidos.',
+            'Accesorios': 'Complementos funcionales y estéticos.',
+        }
 
-        created_categories = []
-        for name in categories:
-            cat, created = Categoria.objects.get_or_create(name=name)
+        created_categories = {}
+        for name, description in categories.items():
+            cat, created = Categoria.objects.get_or_create(name=name, defaults={'description': description})
             if created:
                 cat.slug = cat.slug or name.lower().replace(' ', '-')
                 cat.save()
-            created_categories.append(cat)
+            created_categories[name] = cat
 
-        # Create repuestos for each category
-        adjectives = ['Premium', 'Std', 'Pro', 'Eco', 'Sport', 'Advanced', 'Lite', 'Heavy']
-        parts = ['pastilla', 'disco', 'bomba', 'filtro', 'bujía', 'correa', 'amortiguador', 'radiador', 'alternador', 'sensor']
-
-        total_created = 0
-        for cat in created_categories:
-            for i in range(1, 11):
-                name = f"{random.choice(adjectives).title()} {cat.name} {random.choice(parts).title()} {i}"
-                sku = f"{cat.name[:3].upper()}{i:03d}"
-                price = round(random.uniform(5.0, 350.0), 2)
-                stock = random.randint(0, 200)
-                description = f"Repuesto {name} compatible con varios modelos. Calidad garantizada."
-                image = f"https://picsum.photos/seed/{sku}/400/300"
-
-                # Avoid duplicate SKU
-                if sku and Repuesto.objects.filter(sku=sku).exists():
-                    continue
-
-                Repuesto.objects.create(
-                    category=cat,
-                    name=name,
-                    sku=sku,
-                    description=description,
-                    price=price,
-                    stock=stock,
-                    image=image,
-                )
-                total_created += 1
-
-        # Create some additional example specialized products
-        special_products = [
-            ( 'Aceites y Fluidos', 'Aceite Sintético 5W-30', 'OIL-001', 39.99, 120 ),
-            ( 'Herramientas', 'Juego de Llaves Torx 10pcs', 'TOOL-010', 24.50, 40 ),
-            ( 'Accesorios', 'Alfombra Universal de Goma', 'ACC-100', 29.99, 75 ),
-            ( 'Electricidad', 'Batería 12V 60Ah', 'BAT-060', 89.99, 30 ),
+        repuestos = [
+            {
+                'category': 'Frenos',
+                'name': 'Disco de freno ventilado delantero',
+                'sku': 'BRK-TCOR18-01',
+                'price': 145.50,
+                'stock': 38,
+                'brand': 'Toyota',
+                'model': 'Corolla',
+                'year': 2018,
+                'description': 'Disco ventilado con alto poder de disipación térmica para uso urbano y carretera.',
+                'image': 'https://source.unsplash.com/featured/400x300?brake,disc',
+            },
+            {
+                'category': 'Frenos',
+                'name': 'Pastillas cerámicas delanteras',
+                'sku': 'BRK-HCIV20-02',
+                'price': 89.99,
+                'stock': 52,
+                'brand': 'Honda',
+                'model': 'Civic',
+                'year': 2020,
+                'description': 'Pastillas cerámicas de baja emisión de polvo y excelente mordiente.',
+                'image': 'https://source.unsplash.com/featured/400x300?brake,pads',
+            },
+            {
+                'category': 'Frenos',
+                'name': 'Kit discos + pastillas performance',
+                'sku': 'BRK-FMUS17-03',
+                'price': 320.00,
+                'stock': 18,
+                'brand': 'Ford',
+                'model': 'Mustang',
+                'year': 2017,
+                'description': 'Kit de frenado deportivo con discos ranurados y pastillas de alto coeficiente.',
+                'image': 'https://source.unsplash.com/featured/400x300?performance,brake',
+            },
+            {
+                'category': 'Motor',
+                'name': 'Filtro de aceite premium',
+                'sku': 'ENG-BMW3-19-01',
+                'price': 18.90,
+                'stock': 120,
+                'brand': 'BMW',
+                'model': 'Serie 3',
+                'year': 2019,
+                'description': 'Filtro de alta eficiencia para motor turbo, recomendado para intervalos extendidos.',
+                'image': 'https://source.unsplash.com/featured/400x300?oil,filter',
+            },
+            {
+                'category': 'Motor',
+                'name': 'Bujías iridium set x4',
+                'sku': 'ENG-AUA4-18-02',
+                'price': 74.50,
+                'stock': 64,
+                'brand': 'Audi',
+                'model': 'A4',
+                'year': 2018,
+                'description': 'Bujías iridium para encendido eficiente y mejor respuesta en bajas rpm.',
+                'image': 'https://source.unsplash.com/featured/400x300?spark,plug',
+            },
+            {
+                'category': 'Motor',
+                'name': 'Correa poly-V reforzada',
+                'sku': 'ENG-VGOL16-03',
+                'price': 42.00,
+                'stock': 90,
+                'brand': 'Volkswagen',
+                'model': 'Golf',
+                'year': 2016,
+                'description': 'Correa reforzada para accesorios con mayor resistencia a la temperatura.',
+                'image': 'https://source.unsplash.com/featured/400x300?engine,belt',
+            },
+            {
+                'category': 'Suspensión',
+                'name': 'Amortiguador delantero gas',
+                'sku': 'SUS-RCLI15-01',
+                'price': 110.00,
+                'stock': 44,
+                'brand': 'Renault',
+                'model': 'Clio',
+                'year': 2015,
+                'description': 'Amortiguador con carga a gas para mejor control y confort.',
+                'image': 'https://source.unsplash.com/featured/400x300?suspension,shock',
+            },
+            {
+                'category': 'Suspensión',
+                'name': 'Kit bujes suspensión trasera',
+                'sku': 'SUS-P20817-02',
+                'price': 65.75,
+                'stock': 70,
+                'brand': 'Peugeot',
+                'model': '208',
+                'year': 2017,
+                'description': 'Bujes de alta durabilidad para reducir vibraciones.',
+                'image': 'https://source.unsplash.com/featured/400x300?suspension,bushing',
+            },
+            {
+                'category': 'Iluminación',
+                'name': 'Faros LED delanteros',
+                'sku': 'LGT-CCRU19-01',
+                'price': 280.00,
+                'stock': 22,
+                'brand': 'Chevrolet',
+                'model': 'Cruze',
+                'year': 2019,
+                'description': 'Ópticas LED con mayor alcance y menor consumo.',
+                'image': 'https://source.unsplash.com/featured/400x300?headlight,led',
+            },
+            {
+                'category': 'Iluminación',
+                'name': 'Lámparas halógenas H7',
+                'sku': 'LGT-NSEN20-02',
+                'price': 22.00,
+                'stock': 140,
+                'brand': 'Nissan',
+                'model': 'Sentra',
+                'year': 2020,
+                'description': 'Par de lámparas H7 con luz blanca mejorada.',
+                'image': 'https://source.unsplash.com/featured/400x300?car,light',
+            },
+            {
+                'category': 'Transmisión',
+                'name': 'Kit embrague completo',
+                'sku': 'TRN-SIMP18-01',
+                'price': 310.00,
+                'stock': 16,
+                'brand': 'Subaru',
+                'model': 'Impreza',
+                'year': 2018,
+                'description': 'Kit embrague con plato, disco y rulemán.',
+                'image': 'https://source.unsplash.com/featured/400x300?clutch,gear',
+            },
+            {
+                'category': 'Transmisión',
+                'name': 'Aceite de transmisión ATF',
+                'sku': 'TRN-MC19-02',
+                'price': 34.90,
+                'stock': 80,
+                'brand': 'Mercedes-Benz',
+                'model': 'Clase C',
+                'year': 2019,
+                'description': 'Fluido ATF recomendado para cajas automáticas de 7 marchas.',
+                'image': 'https://source.unsplash.com/featured/400x300?transmission,fluid',
+            },
+            {
+                'category': 'Electricidad',
+                'name': 'Batería 12V 60Ah AGM',
+                'sku': 'ELC-MAZ3-17-01',
+                'price': 140.00,
+                'stock': 26,
+                'brand': 'Mazda',
+                'model': '3',
+                'year': 2017,
+                'description': 'Batería AGM para sistemas Start/Stop con alta durabilidad.',
+                'image': 'https://source.unsplash.com/featured/400x300?car,battery',
+            },
+            {
+                'category': 'Electricidad',
+                'name': 'Alternador 120A',
+                'sku': 'ELC-KSP21-02',
+                'price': 220.00,
+                'stock': 12,
+                'brand': 'Kia',
+                'model': 'Sportage',
+                'year': 2021,
+                'description': 'Alternador de alta salida para mayor carga eléctrica.',
+                'image': 'https://source.unsplash.com/featured/400x300?alternator,engine',
+            },
+            {
+                'category': 'Carrocería',
+                'name': 'Paragolpes delantero',
+                'sku': 'BDY-HTUC20-01',
+                'price': 260.00,
+                'stock': 10,
+                'brand': 'Hyundai',
+                'model': 'Tucson',
+                'year': 2020,
+                'description': 'Paragolpes con terminación lisa listo para pintura.',
+                'image': 'https://source.unsplash.com/featured/400x300?car,bumper',
+            },
+            {
+                'category': 'Carrocería',
+                'name': 'Espejo retrovisor eléctrico',
+                'sku': 'BDY-FCR22-02',
+                'price': 95.00,
+                'stock': 24,
+                'brand': 'Fiat',
+                'model': 'Cronos',
+                'year': 2022,
+                'description': 'Espejo con comando eléctrico y carcasa negra texturada.',
+                'image': 'https://source.unsplash.com/featured/400x300?car,mirror',
+            },
+            {
+                'category': 'Aceites y Fluidos',
+                'name': 'Aceite sintético 5W-30',
+                'sku': 'FLT-THIL21-01',
+                'price': 39.99,
+                'stock': 150,
+                'brand': 'Toyota',
+                'model': 'Hilux',
+                'year': 2021,
+                'description': 'Aceite sintético recomendado para motores diésel modernos.',
+                'image': 'https://source.unsplash.com/featured/400x300?engine,oil',
+            },
+            {
+                'category': 'Aceites y Fluidos',
+                'name': 'Refrigerante orgánico OAT',
+                'sku': 'FLT-FRAN20-02',
+                'price': 26.50,
+                'stock': 95,
+                'brand': 'Ford',
+                'model': 'Ranger',
+                'year': 2020,
+                'description': 'Refrigerante de larga duración listo para usar.',
+                'image': 'https://source.unsplash.com/featured/400x300?coolant,car',
+            },
+            {
+                'category': 'Accesorios',
+                'name': 'Tapetes premium de goma',
+                'sku': 'ACC-TCOR18-01',
+                'price': 48.00,
+                'stock': 70,
+                'brand': 'Toyota',
+                'model': 'Corolla',
+                'year': 2018,
+                'description': 'Juego de tapetes con borde alto para mayor protección.',
+                'image': 'https://source.unsplash.com/featured/400x300?car,interior',
+            },
+            {
+                'category': 'Accesorios',
+                'name': 'Porta equipaje techo',
+                'sku': 'ACC-VGOL16-02',
+                'price': 210.00,
+                'stock': 15,
+                'brand': 'Volkswagen',
+                'model': 'Golf',
+                'year': 2016,
+                'description': 'Barras de techo aerodinámicas con cierre de seguridad.',
+                'image': 'https://source.unsplash.com/featured/400x300?roof,rack',
+            },
         ]
 
-        for cat_name, name, sku, price, stock in special_products:
-            cat = Categoria.objects.filter(name=cat_name).first()
+        total_created = 0
+        for item in repuestos:
+            cat = created_categories.get(item['category'])
             if not cat:
-                cat = Categoria.objects.create(name=cat_name)
-            if not Repuesto.objects.filter(sku=sku).exists():
-                Repuesto.objects.create(
-                    category=cat,
-                    name=name,
-                    sku=sku,
-                    description=f"{name} de alta calidad.",
-                    price=price,
-                    stock=stock,
-                    image=f"https://picsum.photos/seed/{sku}/400/300",
-                )
-                total_created += 1
+                cat = Categoria.objects.create(name=item['category'])
+                created_categories[item['category']] = cat
+
+            if item.get('sku') and Repuesto.objects.filter(sku=item['sku']).exists():
+                continue
+
+            Repuesto.objects.create(
+                category=cat,
+                name=item['name'],
+                sku=item['sku'],
+                description=item['description'],
+                price=item['price'],
+                stock=item['stock'],
+                image=item['image'],
+                brand=item['brand'],
+                model=item['model'],
+                year=item['year'],
+            )
+            total_created += 1
 
         # Create example users
         if not User.objects.filter(username='admin').exists():
