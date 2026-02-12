@@ -8,6 +8,8 @@
     "start": "next start -p 3000"
   },
   "dependencies": {
+    "framer-motion": "^12.34.0",
+    "lucide-react": "^0.563.0",
     "next": "^13.4.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

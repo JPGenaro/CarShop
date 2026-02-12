@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { fetchWithAuth } from '../lib/auth'
 
@@ -26,28 +27,33 @@ export default function RepuestoCard({ item }) {
   }
 
   return (
-    <div className="border rounded-lg p-4 bg-white shadow hover:shadow-lg transform hover:-translate-y-1 transition-all duration-150 flex flex-col">
+    <motion.div
+      layout
+      whileHover={{ y: -6 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      className="border border-white/10 rounded-2xl p-4 bg-white/5 backdrop-blur-xl shadow-lg shadow-black/40 flex flex-col"
+    >
       {item.image && (
-        <div className="h-44 w-full mb-3 overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
-          <img src={item.image} alt={item.name} className="object-cover h-full w-full" />
+        <div className="h-44 w-full mb-3 overflow-hidden rounded-xl bg-black/30 flex items-center justify-center">
+          <motion.img layoutId={`repuesto-image-${item.id}`} src={item.image} alt={item.name} className="object-cover h-full w-full" />
         </div>
       )}
-      <h3 className="text-lg font-semibold">{item.name}</h3>
-      <p className="text-sm text-gray-600">SKU: {item.sku || '—'}</p>
-      <p className="mt-2 text-indigo-600 font-bold text-lg">${item.price}</p>
-      <p className="text-sm text-gray-500 mt-2">{truncate(item.description)}</p>
+      <h3 className="text-lg font-semibold text-gray-100">{item.name}</h3>
+      <p className="text-sm text-gray-400">SKU: {item.sku || '—'}</p>
+      <p className="mt-2 text-orange-400 font-bold text-lg">${item.price}</p>
+      <p className="text-sm text-gray-400 mt-2">{truncate(item.description)}</p>
       <div className="flex items-center justify-between mt-4">
-        <div className="text-sm text-gray-700">{item.stock > 0 ? `Stock: ${item.stock}` : <span className="text-red-600">Agotado</span>}</div>
+        <div className="text-sm text-gray-300">{item.stock > 0 ? `Stock: ${item.stock}` : <span className="text-red-400">Agotado</span>}</div>
         <div className="flex items-center gap-2">
-          <Link href={`/repuestos/${item.id}`} className="text-sm text-white bg-blue-600 px-3 py-1 rounded-md">Ver</Link>
+          <Link href={`/repuestos/${item.id}`} className="text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md shadow-md shadow-red-500/20">Ver</Link>
           {user && (
             <>
-              <Link href={`/repuestos/${item.id}/edit`} className="text-sm text-gray-700 px-2 py-1 border rounded">Editar</Link>
-              <button onClick={handleDelete} className="text-sm text-red-600 px-2 py-1">Borrar</button>
+              <Link href={`/repuestos/${item.id}/edit`} className="text-sm text-gray-200 px-2 py-1 border border-white/20 rounded hover:border-orange-400/60">Editar</Link>
+              <button onClick={handleDelete} className="text-sm text-red-400 px-2 py-1 hover:text-red-300">Borrar</button>
             </>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

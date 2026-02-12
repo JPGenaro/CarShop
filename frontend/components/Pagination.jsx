@@ -13,20 +13,20 @@ export default function Pagination({ total = 0, page = 1, onPage }) {
   for (let p = start; p <= end; p++) pages.push(p)
 
   return (
-    <nav className="flex items-center gap-2">
-      <button onClick={() => goto(page - 1)} disabled={page === 1} className="px-3 py-1 border rounded disabled:opacity-50">Anterior</button>
+    <nav className="flex flex-wrap items-center gap-2">
+      <button onClick={() => goto(page - 1)} disabled={page === 1} className="px-3 py-1 border border-white/10 rounded-md text-gray-300 disabled:opacity-50">Anterior</button>
       {start > 1 && (
-        <button onClick={() => goto(1)} className="px-3 py-1 border rounded">1</button>
+        <button onClick={() => goto(1)} className="px-3 py-1 border border-white/10 rounded-md text-gray-300">1</button>
       )}
       {pages.map(p => (
-        <button key={p} onClick={() => goto(p)} className={`px-3 py-1 border rounded ${p===page? 'bg-blue-600 text-white':''}`}>
+        <button key={p} onClick={() => goto(p)} className={`px-3 py-1 border border-white/10 rounded-md ${p===page? 'bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-md shadow-red-500/20':'text-gray-300'}`}>
           {p}
         </button>
       ))}
       {end < totalPages && (
-        <button onClick={() => goto(totalPages)} className="px-3 py-1 border rounded">{totalPages}</button>
+        <button onClick={() => goto(totalPages)} className="px-3 py-1 border border-white/10 rounded-md text-gray-300">{totalPages}</button>
       )}
-      <button onClick={() => goto(page + 1)} disabled={page === totalPages} className="px-3 py-1 border rounded disabled:opacity-50">Siguiente</button>
+      <button onClick={() => goto(page + 1)} disabled={page === totalPages} className="px-3 py-1 border border-white/10 rounded-md text-gray-300 disabled:opacity-50">Siguiente</button>
     </nav>
   )
 }
