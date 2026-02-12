@@ -59,11 +59,6 @@ export default function Home() {
       })
   }, [search, category, ordering, page])
 
-  function handleSearchSubmit(e) {
-    e.preventDefault()
-    setPage(1)
-  }
-
   return (
     <div>
       <Navbar />
@@ -71,13 +66,12 @@ export default function Home() {
       <main id="repuestos" className="container mx-auto max-w-6xl py-12 px-4">
         <h1 className="text-3xl font-bold mb-6">Repuestos</h1>
 
-        <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 mb-6 items-center">
+        <div className="flex flex-col md:flex-row gap-3 mb-6 items-center">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="border rounded px-3 py-2 flex-1 shadow-sm"
             placeholder="Buscar repuestos..."
-            disabled={loading}
           />
 
           <select value={category} onChange={e => { setCategory(e.target.value); setPage(1) }} className="border rounded px-3 py-2 shadow-sm" disabled={loading}>
@@ -94,11 +88,7 @@ export default function Home() {
             <option value="name">Nombre ↑</option>
             <option value="-created_at">Recientes</option>
           </select>
-
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading}>
-            {loading ? 'Cargando...' : 'Buscar'}
-          </button>
-        </form>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
