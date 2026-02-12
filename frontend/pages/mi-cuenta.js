@@ -24,6 +24,48 @@ export default function MiCuenta() {
   const [notifications, setNotifications] = useState([])
   const [fieldErrors, setFieldErrors] = useState({})
 
+  const statusMap = {
+    pending: 'Pendiente',
+    paid: 'Pagado',
+    shipped: 'Enviado',
+    delivered: 'Entregado',
+  }
+
+  const provinces = [
+    'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
+    'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja',
+    'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan',
+    'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero',
+    'Tierra del Fuego', 'Tucumán'
+  ]
+
+  const citiesByProvince = {
+    'Buenos Aires': ['La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil', 'Pergamino'],
+    'CABA': ['CABA'],
+    'Catamarca': ['San Fernando del Valle de Catamarca', 'Belén', 'Andalgalá'],
+    'Chaco': ['Resistencia', 'Presidencia Roque Sáenz Peña', 'Villa Ángela'],
+    'Chubut': ['Rawson', 'Comodoro Rivadavia', 'Trelew', 'Puerto Madryn'],
+    'Córdoba': ['Córdoba', 'Villa Carlos Paz', 'Río Cuarto', 'Villa María'],
+    'Corrientes': ['Corrientes', 'Goya', 'Mercedes'],
+    'Entre Ríos': ['Paraná', 'Concordia', 'Gualeguaychú'],
+    'Formosa': ['Formosa', 'Clorinda', 'Pirané'],
+    'Jujuy': ['San Salvador de Jujuy', 'Palpalá', 'Perico'],
+    'La Pampa': ['Santa Rosa', 'General Pico', 'Toay'],
+    'La Rioja': ['La Rioja', 'Chilecito', 'Aimogasta'],
+    'Mendoza': ['Mendoza', 'San Rafael', 'Godoy Cruz', 'Luján de Cuyo'],
+    'Misiones': ['Posadas', 'Oberá', 'Eldorado'],
+    'Neuquén': ['Neuquén', 'Cutral Có', 'Zapala'],
+    'Río Negro': ['Viedma', 'Bariloche', 'General Roca'],
+    'Salta': ['Salta', 'Orán', 'Tartagal'],
+    'San Juan': ['San Juan', 'Rawson', 'Chimbas'],
+    'San Luis': ['San Luis', 'Villa Mercedes', 'Merlo'],
+    'Santa Cruz': ['Río Gallegos', 'Caleta Olivia', 'El Calafate'],
+    'Santa Fe': ['Santa Fe', 'Rosario', 'Rafaela', 'Venado Tuerto'],
+    'Santiago del Estero': ['Santiago del Estero', 'La Banda', 'Termas de Río Hondo'],
+    'Tierra del Fuego': ['Ushuaia', 'Río Grande', 'Tolhuin'],
+    'Tucumán': ['San Miguel de Tucumán', 'Tafí Viejo', 'Concepción'],
+  }
+
   function onlyDigits(value) {
     return value.replace(/\D/g, '')
   }
@@ -168,20 +210,27 @@ export default function MiCuenta() {
                 maxLength={200}
               />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input
+                <select
+                  value={profile?.province || ''}
+                  onChange={e => setProfile(prev => ({ ...prev, province: e.target.value, city: '' }))}
+                  className={`bg-black/40 border ${fieldErrors.province ? 'border-red-500/60' : 'border-white/10'} rounded-xl px-4 py-2 text-gray-100`}
+                >
+                  <option value="">Provincia</option>
+                  {provinces.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+                <select
                   value={profile?.city || ''}
                   onChange={e => setProfile(prev => ({ ...prev, city: e.target.value }))}
                   className={`bg-black/40 border ${fieldErrors.city ? 'border-red-500/60' : 'border-white/10'} rounded-xl px-4 py-2 text-gray-100`}
-                  placeholder="Ciudad"
-                  maxLength={100}
-                />
-                <input
-                  value={profile?.province || ''}
-                  onChange={e => setProfile(prev => ({ ...prev, province: e.target.value }))}
-                  className={`bg-black/40 border ${fieldErrors.province ? 'border-red-500/60' : 'border-white/10'} rounded-xl px-4 py-2 text-gray-100`}
-                  placeholder="Provincia"
-                  maxLength={100}
-                />
+                  disabled={!profile?.province}
+                >
+                  <option value="">Ciudad</option>
+                  {(citiesByProvince[profile?.province] || []).map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
                 <input
                   value={profile?.postal_code || ''}
                   onChange={e => setProfile(prev => ({ ...prev, postal_code: onlyDigits(e.target.value) }))}
@@ -218,7 +267,7 @@ export default function MiCuenta() {
                     <Link key={order.id} href={`/pedidos/${order.id}`} className="block border border-white/10 rounded-xl p-4 text-gray-300 hover:border-orange-400/50">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span>Orden #{order.id}</span>
-                        <span className="text-orange-300">{order.status}</span>
+                        <span className="text-orange-300">{statusMap[order.status] || 'Desconocido'}</span>
                       </div>
                       <div className="text-sm text-gray-400">Total: ${Number(order.total || 0).toFixed(2)}</div>
                       <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleString()}</div>

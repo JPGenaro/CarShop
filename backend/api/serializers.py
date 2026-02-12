@@ -24,6 +24,50 @@ class ProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('El país debe ser Argentina.')
         return 'Argentina'
 
+    def validate_province(self, value):
+        allowed = {
+            'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
+            'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja',
+            'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan',
+            'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero',
+            'Tierra del Fuego', 'Tucumán'
+        }
+        if value not in allowed:
+            raise serializers.ValidationError('Provincia inválida.')
+        return value
+
+    def validate_city(self, value):
+        province = self.initial_data.get('province') or ''
+        map_cities = {
+            'Buenos Aires': {'La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil', 'Pergamino'},
+            'CABA': {'CABA'},
+            'Catamarca': {'San Fernando del Valle de Catamarca', 'Belén', 'Andalgalá'},
+            'Chaco': {'Resistencia', 'Presidencia Roque Sáenz Peña', 'Villa Ángela'},
+            'Chubut': {'Rawson', 'Comodoro Rivadavia', 'Trelew', 'Puerto Madryn'},
+            'Córdoba': {'Córdoba', 'Villa Carlos Paz', 'Río Cuarto', 'Villa María'},
+            'Corrientes': {'Corrientes', 'Goya', 'Mercedes'},
+            'Entre Ríos': {'Paraná', 'Concordia', 'Gualeguaychú'},
+            'Formosa': {'Formosa', 'Clorinda', 'Pirané'},
+            'Jujuy': {'San Salvador de Jujuy', 'Palpalá', 'Perico'},
+            'La Pampa': {'Santa Rosa', 'General Pico', 'Toay'},
+            'La Rioja': {'La Rioja', 'Chilecito', 'Aimogasta'},
+            'Mendoza': {'Mendoza', 'San Rafael', 'Godoy Cruz', 'Luján de Cuyo'},
+            'Misiones': {'Posadas', 'Oberá', 'Eldorado'},
+            'Neuquén': {'Neuquén', 'Cutral Có', 'Zapala'},
+            'Río Negro': {'Viedma', 'Bariloche', 'General Roca'},
+            'Salta': {'Salta', 'Orán', 'Tartagal'},
+            'San Juan': {'San Juan', 'Rawson', 'Chimbas'},
+            'San Luis': {'San Luis', 'Villa Mercedes', 'Merlo'},
+            'Santa Cruz': {'Río Gallegos', 'Caleta Olivia', 'El Calafate'},
+            'Santa Fe': {'Santa Fe', 'Rosario', 'Rafaela', 'Venado Tuerto'},
+            'Santiago del Estero': {'Santiago del Estero', 'La Banda', 'Termas de Río Hondo'},
+            'Tierra del Fuego': {'Ushuaia', 'Río Grande', 'Tolhuin'},
+            'Tucumán': {'San Miguel de Tucumán', 'Tafí Viejo', 'Concepción'},
+        }
+        if province and value not in map_cities.get(province, set()):
+            raise serializers.ValidationError('Ciudad inválida para la provincia seleccionada.')
+        return value
+
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
@@ -75,6 +119,50 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         UserProfile.objects.create(user=user, **profile_data)
         return user
+
+    def validate_province(self, value):
+        allowed = {
+            'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
+            'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja',
+            'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan',
+            'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero',
+            'Tierra del Fuego', 'Tucumán'
+        }
+        if value not in allowed:
+            raise serializers.ValidationError('Provincia inválida.')
+        return value
+
+    def validate_city(self, value):
+        province = self.initial_data.get('province') or ''
+        map_cities = {
+            'Buenos Aires': {'La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil', 'Pergamino'},
+            'CABA': {'CABA'},
+            'Catamarca': {'San Fernando del Valle de Catamarca', 'Belén', 'Andalgalá'},
+            'Chaco': {'Resistencia', 'Presidencia Roque Sáenz Peña', 'Villa Ángela'},
+            'Chubut': {'Rawson', 'Comodoro Rivadavia', 'Trelew', 'Puerto Madryn'},
+            'Córdoba': {'Córdoba', 'Villa Carlos Paz', 'Río Cuarto', 'Villa María'},
+            'Corrientes': {'Corrientes', 'Goya', 'Mercedes'},
+            'Entre Ríos': {'Paraná', 'Concordia', 'Gualeguaychú'},
+            'Formosa': {'Formosa', 'Clorinda', 'Pirané'},
+            'Jujuy': {'San Salvador de Jujuy', 'Palpalá', 'Perico'},
+            'La Pampa': {'Santa Rosa', 'General Pico', 'Toay'},
+            'La Rioja': {'La Rioja', 'Chilecito', 'Aimogasta'},
+            'Mendoza': {'Mendoza', 'San Rafael', 'Godoy Cruz', 'Luján de Cuyo'},
+            'Misiones': {'Posadas', 'Oberá', 'Eldorado'},
+            'Neuquén': {'Neuquén', 'Cutral Có', 'Zapala'},
+            'Río Negro': {'Viedma', 'Bariloche', 'General Roca'},
+            'Salta': {'Salta', 'Orán', 'Tartagal'},
+            'San Juan': {'San Juan', 'Rawson', 'Chimbas'},
+            'San Luis': {'San Luis', 'Villa Mercedes', 'Merlo'},
+            'Santa Cruz': {'Río Gallegos', 'Caleta Olivia', 'El Calafate'},
+            'Santa Fe': {'Santa Fe', 'Rosario', 'Rafaela', 'Venado Tuerto'},
+            'Santiago del Estero': {'Santiago del Estero', 'La Banda', 'Termas de Río Hondo'},
+            'Tierra del Fuego': {'Ushuaia', 'Río Grande', 'Tolhuin'},
+            'Tucumán': {'San Miguel de Tucumán', 'Tafí Viejo', 'Concepción'},
+        }
+        if province and value not in map_cities.get(province, set()):
+            raise serializers.ValidationError('Ciudad inválida para la provincia seleccionada.')
+        return value
 
 
 class CategoriaSerializer(serializers.ModelSerializer):

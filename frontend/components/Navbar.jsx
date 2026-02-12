@@ -40,7 +40,9 @@ export default function Navbar() {
           )}
           {user ? (
             <>
-              <Link href="/repuestos/new" className="text-sm text-gray-200 hover:text-orange-400">+ Nuevo</Link>
+              {user?.is_staff && (
+                <Link href="/repuestos/new" className="text-sm text-gray-200 hover:text-orange-400">+ Nuevo</Link>
+              )}
               <Link href="/mi-cuenta" className="text-sm text-gray-200 hover:text-orange-400">Mi cuenta</Link>
               <span className="text-sm text-gray-400">Hola, {user.username}</span>
               <button onClick={handleLogout} className="text-sm text-red-400 hover:text-red-300">Cerrar sesión</button>

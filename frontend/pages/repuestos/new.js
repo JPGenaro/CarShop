@@ -4,11 +4,13 @@ import RequireAuth from '../../components/RequireAuth'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import { fetchWithAuth } from '../../lib/auth'
+import { useAuth } from '../../context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
 export default function NewRepuesto() {
   const router = useRouter()
+  const { user } = useAuth()
   const [name, setName] = useState('')
   const [sku, setSku] = useState('')
   const [description, setDescription] = useState('')
@@ -121,6 +123,11 @@ export default function NewRepuesto() {
         <Navbar />
         <main className="flex-1 container mx-auto px-4 py-12 flex flex-col items-center">
           <h1 className="text-2xl font-bold mb-4">Crear Repuesto</h1>
+          {!user?.is_staff ? (
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 max-w-2xl w-full text-gray-300">
+              Solo administradores pueden crear repuestos.
+            </div>
+          ) : (
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 max-w-2xl w-full">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -189,6 +196,7 @@ export default function NewRepuesto() {
               </div>
             </form>
           </div>
+          )}
         </main>
         <Footer />
       </div>

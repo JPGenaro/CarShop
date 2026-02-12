@@ -11,6 +11,13 @@ export default function PedidoDetail() {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const statusMap = {
+    pending: 'Pendiente',
+    paid: 'Pagado',
+    shipped: 'Enviado',
+    delivered: 'Entregado',
+  }
+
   useEffect(() => {
     if (!id) return
     async function load() {
@@ -42,7 +49,7 @@ export default function PedidoDetail() {
               <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h1 className="text-2xl font-bold text-gray-100">Pedido #{order.id}</h1>
-                  <span className="text-orange-300">{order.status}</span>
+                  <span className="text-orange-300">{statusMap[order.status] || 'Desconocido'}</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-2">Fecha: {new Date(order.created_at).toLocaleString()}</p>
                 <p className="text-sm text-gray-400 mt-1">Total: ${Number(order.total || 0).toFixed(2)}</p>

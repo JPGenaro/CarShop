@@ -52,7 +52,7 @@ export default function RepuestoCard({ item }) {
             Agregar
           </button>
           <Link href={`/repuestos/${item.id}`} className="text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md shadow-md shadow-red-500/20">Ver</Link>
-          {user && (
+          {user?.is_staff && (
             <>
               <Link href={`/repuestos/${item.id}/edit`} className="text-sm text-gray-200 px-2 py-1 border border-white/20 rounded hover:border-orange-400/60">Editar</Link>
               <button onClick={handleDelete} className="text-sm text-red-400 px-2 py-1 hover:text-red-300">Borrar</button>

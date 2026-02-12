@@ -175,3 +175,8 @@ class RepuestoViewSet(viewsets.ModelViewSet):
     }
     search_fields = ('name', 'description', 'sku', 'brand', 'model')
     ordering_fields = ('price', 'created_at', 'name', 'year')
+
+    def get_permissions(self):
+        if self.action in {'create', 'update', 'partial_update', 'destroy'}:
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticatedOrReadOnly()]

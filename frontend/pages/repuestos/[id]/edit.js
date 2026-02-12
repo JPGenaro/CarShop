@@ -4,12 +4,14 @@ import RequireAuth from '../../../components/RequireAuth'
 import Navbar from '../../../components/Navbar'
 import Footer from '../../../components/Footer'
 import { fetchWithAuth } from '../../../lib/auth'
+import { useAuth } from '../../../context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
 export default function EditRepuesto() {
   const router = useRouter()
   const { id } = router.query
+  const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState('')
@@ -119,6 +121,11 @@ export default function EditRepuesto() {
         <Navbar />
         <main className="flex-1 container mx-auto px-4 py-12">
           <h1 className="text-2xl font-bold mb-4">Editar Repuesto</h1>
+          {!user?.is_staff ? (
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 max-w-2xl text-gray-300">
+              Solo administradores pueden editar repuestos.
+            </div>
+          ) : (
           <div className="bg-white rounded-lg shadow p-6 max-w-2xl">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -164,6 +171,7 @@ export default function EditRepuesto() {
               </div>
             </form>
           </div>
+          )}
         </main>
         <Footer />
       </div>

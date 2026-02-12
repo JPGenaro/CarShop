@@ -25,6 +25,41 @@ export default function RegisterPage() {
   const router = useRouter()
   const { login } = useAuth()
 
+  const provinces = [
+    'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
+    'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja',
+    'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan',
+    'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero',
+    'Tierra del Fuego', 'Tucumán'
+  ]
+
+  const citiesByProvince = {
+    'Buenos Aires': ['La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil', 'Pergamino'],
+    'CABA': ['CABA'],
+    'Catamarca': ['San Fernando del Valle de Catamarca', 'Belén', 'Andalgalá'],
+    'Chaco': ['Resistencia', 'Presidencia Roque Sáenz Peña', 'Villa Ángela'],
+    'Chubut': ['Rawson', 'Comodoro Rivadavia', 'Trelew', 'Puerto Madryn'],
+    'Córdoba': ['Córdoba', 'Villa Carlos Paz', 'Río Cuarto', 'Villa María'],
+    'Corrientes': ['Corrientes', 'Goya', 'Mercedes'],
+    'Entre Ríos': ['Paraná', 'Concordia', 'Gualeguaychú'],
+    'Formosa': ['Formosa', 'Clorinda', 'Pirané'],
+    'Jujuy': ['San Salvador de Jujuy', 'Palpalá', 'Perico'],
+    'La Pampa': ['Santa Rosa', 'General Pico', 'Toay'],
+    'La Rioja': ['La Rioja', 'Chilecito', 'Aimogasta'],
+    'Mendoza': ['Mendoza', 'San Rafael', 'Godoy Cruz', 'Luján de Cuyo'],
+    'Misiones': ['Posadas', 'Oberá', 'Eldorado'],
+    'Neuquén': ['Neuquén', 'Cutral Có', 'Zapala'],
+    'Río Negro': ['Viedma', 'Bariloche', 'General Roca'],
+    'Salta': ['Salta', 'Orán', 'Tartagal'],
+    'San Juan': ['San Juan', 'Rawson', 'Chimbas'],
+    'San Luis': ['San Luis', 'Villa Mercedes', 'Merlo'],
+    'Santa Cruz': ['Río Gallegos', 'Caleta Olivia', 'El Calafate'],
+    'Santa Fe': ['Santa Fe', 'Rosario', 'Rafaela', 'Venado Tuerto'],
+    'Santiago del Estero': ['Santiago del Estero', 'La Banda', 'Termas de Río Hondo'],
+    'Tierra del Fuego': ['Ushuaia', 'Río Grande', 'Tolhuin'],
+    'Tucumán': ['San Miguel de Tucumán', 'Tafí Viejo', 'Concepción'],
+  }
+
   function onlyDigits(value) {
     return value.replace(/\D/g, '')
   }
@@ -39,8 +74,8 @@ export default function RegisterPage() {
     if (!dni || dni.length < 7) errors.dni = 'DNI entre 7 y 12 dígitos.'
     if (!phone || phone.length < 7) errors.phone = 'Teléfono entre 7 y 15 dígitos.'
     if (!address1) errors.address1 = 'Dirección requerida.'
-    if (!city) errors.city = 'Ciudad requerida.'
     if (!province) errors.province = 'Provincia requerida.'
+    if (!city) errors.city = 'Ciudad requerida.'
     if (!postalCode || postalCode.length < 3) errors.postalCode = 'Código postal inválido.'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
@@ -205,23 +240,30 @@ export default function RegisterPage() {
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className={`rounded-xl border ${fieldErrors.province ? 'border-red-500/60' : 'border-white/10'} bg-black/40 px-4 py-3 flex items-center gap-3`}>
+                <select
+                  value={province}
+                  onChange={e => { setProvince(e.target.value); setCity('') }}
+                  className="bg-black/40 outline-none text-gray-100 w-full"
+                >
+                  <option value="">Provincia</option>
+                  {provinces.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
               <div className={`rounded-xl border ${fieldErrors.city ? 'border-red-500/60' : 'border-white/10'} bg-black/40 px-4 py-3 flex items-center gap-3`}>
-                <input
+                <select
                   value={city}
                   onChange={e => setCity(e.target.value)}
-                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
-                  placeholder="Ciudad"
-                  maxLength={100}
-                />
-              </div>
-              <div className={`rounded-xl border ${fieldErrors.province ? 'border-red-500/60' : 'border-white/10'} bg-black/40 px-4 py-3 flex items-center gap-3`}>
-                <input
-                  value={province}
-                  onChange={e => setProvince(e.target.value)}
-                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
-                  placeholder="Provincia"
-                  maxLength={100}
-                />
+                  className="bg-black/40 outline-none text-gray-100 w-full"
+                  disabled={!province}
+                >
+                  <option value="">Ciudad</option>
+                  {(citiesByProvince[province] || []).map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
               <div className={`rounded-xl border ${fieldErrors.postalCode ? 'border-red-500/60' : 'border-white/10'} bg-black/40 px-4 py-3 flex items-center gap-3`}>
                 <input
