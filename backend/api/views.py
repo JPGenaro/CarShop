@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, parsers
 from django.contrib.auth.models import User
 from .serializers import (
     UserSerializer,
@@ -36,6 +36,7 @@ class RepuestoViewSet(viewsets.ModelViewSet):
     queryset = Repuesto.objects.select_related('category').all()
     serializer_class = RepuestoSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    parser_classes = (parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser)
     filterset_fields = {
         'price': ['exact', 'lt', 'gt', 'lte', 'gte'],
         'stock': ['exact', 'lt', 'gt', 'lte', 'gte'],

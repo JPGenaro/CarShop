@@ -5,3 +5,4 @@ django-cors-headers>=3.14
 gunicorn
 django-filter>=23.0
 django-grappelli>=2.17.2
+Pillow>=9.0

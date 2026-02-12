@@ -38,6 +38,7 @@ class RepuestoSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
         source='category', queryset=Categoria.objects.all(), write_only=True
     )
+    image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Repuesto
