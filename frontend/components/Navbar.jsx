@@ -35,6 +35,9 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+          {user?.is_staff && (
+            <Link href="/admin/assistant" className="text-sm text-gray-200 hover:text-orange-400">Asistente IA</Link>
+          )}
           {user ? (
             <>
               <Link href="/repuestos/new" className="text-sm text-gray-200 hover:text-orange-400">+ Nuevo</Link>
