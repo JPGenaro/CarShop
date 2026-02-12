@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { fetchWithAuth } from '../lib/auth'
+import { useCart } from '../context/CartContext'
 
 function truncate(text, n = 120) {
   if (!text) return ''
@@ -12,6 +13,7 @@ function truncate(text, n = 120) {
 export default function RepuestoCard({ item }) {
   const router = useRouter()
   const { user } = useAuth()
+  const { addItem } = useCart()
   const meta = [item.brand, item.model, item.year].filter(Boolean).join(' • ')
 
   async function handleDelete() {
@@ -46,6 +48,9 @@ export default function RepuestoCard({ item }) {
       <p className="text-sm text-gray-400 mt-2">{truncate(item.description)}</p>
       <div className="flex items-center justify-end mt-4">
         <div className="flex items-center gap-2">
+          <button onClick={() => addItem(item, 1)} className="text-sm text-gray-100 px-3 py-1 rounded-md border border-white/20 hover:border-orange-400/60">
+            Agregar
+          </button>
           <Link href={`/repuestos/${item.id}`} className="text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md shadow-md shadow-red-500/20">Ver</Link>
           {user && (
             <>

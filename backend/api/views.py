@@ -5,8 +5,11 @@ from .serializers import (
     RegisterSerializer,
     CategoriaSerializer,
     RepuestoSerializer,
+    ProfileSerializer,
+    OrderSerializer,
+    NotificationSerializer,
 )
-from .models import Categoria, Repuesto
+from .models import Categoria, Repuesto, UserProfile, Order, Notification
 
 
 class RegisterView(generics.CreateAPIView):
@@ -21,6 +24,34 @@ class MeView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_object(self):
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):

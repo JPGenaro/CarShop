@@ -1,0 +1,161 @@
+import { useEffect, useMemo, useState } from 'react'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
+import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { fetchWithAuth } from '../lib/auth'
+
+export default function CartPage() {
+  const { items, updateQty, removeItem, clear, summary } = useCart()
+  const { user } = useAuth()
+  const [profile, setProfile] = useState(null)
+  const [profileError, setProfileError] = useState(null)
+
+  const hasItems = items.length > 0
+  const formatted = useMemo(() => {
+    return items.map(item => ({
+      ...item,
+      lineTotal: Number(item.price || 0) * item.qty,
+    }))
+  }, [items])
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user) return
+      try {
+        const res = await fetchWithAuth('/auth/profile/')
+        if (!res.ok) throw new Error('Error perfil')
+        const data = await res.json()
+        setProfile(data)
+      } catch (e) {
+        setProfileError('No se pudo cargar el perfil')
+      }
+    }
+    loadProfile()
+  }, [user])
+
+  const profileComplete = Boolean(
+    profile?.phone &&
+    profile?.dni &&
+    profile?.address_line1 &&
+    profile?.city &&
+    profile?.province &&
+    profile?.postal_code &&
+    (profile?.country || 'Argentina')
+  )
+
+  async function handlePay() {
+    if (!user) return
+    if (!profileComplete) return
+    try {
+      const payload = {
+        items: items.map(i => ({
+          repuesto_id: i.id,
+          name: i.name,
+          sku: i.sku,
+          price: Number(i.price || 0),
+          qty: i.qty,
+          brand: i.brand,
+          model: i.model,
+          year: i.year,
+        })),
+      }
+      const res = await fetchWithAuth('/orders/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Error orden')
+      alert('Pago simulado realizado con éxito.')
+      clear()
+    } catch (e) {
+      alert('No se pudo procesar el pago simulado')
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#121212]">
+      <Navbar />
+      <main className="container mx-auto py-12 px-4 flex-1">
+        <h1 className="text-3xl font-bold mb-8">Carrito</h1>
+
+        {!hasItems ? (
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 text-gray-400">
+            Tu carrito está vacío.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              {formatted.map(item => (
+                <div key={item.id} className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 flex flex-col md:flex-row gap-4">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="h-28 w-40 object-cover rounded-xl bg-black/40" />
+                  ) : (
+                    <div className="h-28 w-40 rounded-xl bg-black/40 flex items-center justify-center text-gray-500">Sin imagen</div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-100">{item.name}</h3>
+                    <p className="text-sm text-gray-400">SKU: {item.sku || '—'}</p>
+                    {[item.brand, item.model, item.year].filter(Boolean).length > 0 && (
+                      <p className="text-sm text-gray-400">{[item.brand, item.model, item.year].filter(Boolean).join(' • ')}</p>
+                    )}
+                    <p className="text-orange-400 font-semibold mt-2">${Number(item.price || 0).toFixed(2)}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => updateQty(item.id, item.qty - 1)} className="px-2 py-1 rounded border border-white/10 text-gray-200">-</button>
+                      <span className="text-gray-100 w-6 text-center">{item.qty}</span>
+                      <button onClick={() => updateQty(item.id, item.qty + 1)} className="px-2 py-1 rounded border border-white/10 text-gray-200">+</button>
+                    </div>
+                    <p className="text-sm text-gray-300">Subtotal: ${item.lineTotal.toFixed(2)}</p>
+                    <button onClick={() => removeItem(item.id)} className="text-sm text-red-400">Quitar</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 h-fit">
+              <h2 className="text-xl font-semibold text-gray-100">Resumen</h2>
+              {!user && (
+                <div className="mt-3 text-sm text-orange-300">
+                  Iniciá sesión para poder pagar.
+                </div>
+              )}
+              {user && !profileComplete && (
+                <div className="mt-3 text-sm text-orange-300">
+                  Completá tus datos de envío en Mi cuenta para poder pagar.
+                </div>
+              )}
+              {profileError && <div className="mt-3 text-sm text-red-400">{profileError}</div>}
+              <div className="mt-4 space-y-2 text-gray-300 text-sm">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${summary.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Impuestos</span>
+                  <span>${summary.tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-base font-semibold text-gray-100 pt-2 border-t border-white/10">
+                  <span>Total</span>
+                  <span>${summary.total.toFixed(2)}</span>
+                </div>
+              </div>
+              <button
+                onClick={handlePay}
+                disabled={!user || !profileComplete}
+                className="mt-6 w-full bg-gradient-to-r from-red-600 to-orange-500 text-white px-4 py-2 rounded-md shadow-lg shadow-red-500/20 disabled:opacity-50"
+              >
+                Pagar
+              </button>
+              <button onClick={clear} className="mt-3 w-full border border-white/10 text-gray-300 px-4 py-2 rounded-md">
+                Vaciar carrito
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+      <Footer />
+    </div>
+  )
+}

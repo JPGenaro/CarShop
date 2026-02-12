@@ -2,12 +2,14 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Navbar from '../../components/Navbar'
+import { useCart } from '../../context/CartContext'
 
 export default function RepuestoDetail() {
   const router = useRouter()
   const { id } = router.query
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { addItem } = useCart()
 
   useEffect(() => {
     if (!id) return
@@ -55,6 +57,9 @@ export default function RepuestoDetail() {
               <p className="mt-4 text-gray-300 leading-relaxed">{item.description}</p>
               <div className="mt-6 flex flex-wrap items-center gap-4">
                 <span className="text-2xl font-semibold text-orange-400">${item.price}</span>
+                <button onClick={() => addItem(item, 1)} className="px-4 py-2 rounded-md bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg shadow-red-500/20">
+                  Agregar al carrito
+                </button>
               </div>
             </div>
           </motion.div>

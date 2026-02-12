@@ -23,6 +23,9 @@ export default function Footer() {
           <h4 className="text-white font-medium">Contacto</h4>
           <p className="text-sm mt-2 text-gray-400">soporte@carshop.local</p>
           <p className="text-sm text-gray-400">(+54) 9 11 1234-5678</p>
+          <a href="https://wa.me/543512644334" target="_blank" rel="noreferrer" className="text-sm text-orange-400 hover:text-orange-300 mt-2 inline-block">
+            WhatsApp: 351 2644334
+          </a>
         </div>
 
         <div>

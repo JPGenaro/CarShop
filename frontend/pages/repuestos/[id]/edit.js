@@ -23,6 +23,17 @@ export default function EditRepuesto() {
   const [categories, setCategories] = useState([])
   const [error, setError] = useState(null)
 
+  function onlyDigits(value) {
+    return value.replace(/\D/g, '')
+  }
+
+  function onlyDecimal(value) {
+    const cleaned = value.replace(/[^\d.]/g, '')
+    const parts = cleaned.split('.')
+    if (parts.length <= 1) return cleaned
+    return `${parts[0]}.${parts.slice(1).join('')}`
+  }
+
   useEffect(() => {
     if (!id) return
     async function load() {
@@ -125,11 +136,11 @@ export default function EditRepuesto() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium">Precio</label>
-                  <input value={price} onChange={e => setPrice(e.target.value)} className="w-full border rounded px-3 py-2" />
+                  <input value={price} onChange={e => setPrice(onlyDecimal(e.target.value))} className="w-full border rounded px-3 py-2" inputMode="decimal" pattern="[0-9.]*" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium">Stock</label>
-                  <input value={stock} onChange={e => setStock(e.target.value)} className="w-full border rounded px-3 py-2" />
+                  <input value={stock} onChange={e => setStock(onlyDigits(e.target.value))} className="w-full border rounded px-3 py-2" inputMode="numeric" pattern="\d*" />
                 </div>
               </div>
               <div>
