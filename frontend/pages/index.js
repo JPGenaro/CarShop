@@ -23,6 +23,13 @@ export default function Home() {
   const [count, setCount] = useState(0)
   const [categories, setCategories] = useState([])
   const [error, setError] = useState(null)
+  const [suggestions, setSuggestions] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestLoading, setSuggestLoading] = useState(false)
+
+  function onlyDigits(value) {
+    return value.replace(/\D/g, '')
+  }
 
   useEffect(() => {
     // fetch categories for the select
@@ -67,6 +74,44 @@ export default function Home() {
       })
   }, [search, brand, model, year, category, ordering, page])
 
+  useEffect(() => {
+    if (!search || search.trim().length < 2) {
+      setSuggestions([])
+      return
+    }
+    const term = search.trim()
+    const timeout = setTimeout(() => {
+      setSuggestLoading(true)
+      fetch(`${API_BASE}/repuestos/?search=${encodeURIComponent(term)}&page=1`)
+        .then(res => res.json())
+        .then(data => {
+          const results = data.results || data
+          setSuggestions(Array.isArray(results) ? results.slice(0, 6) : [])
+        })
+        .catch(() => setSuggestions([]))
+        .finally(() => setSuggestLoading(false))
+    }, 350)
+    return () => clearTimeout(timeout)
+  }, [search])
+
+  function clearFilters() {
+    setSearch('')
+    setBrand('')
+    setModel('')
+    setYear('')
+    setCategory('')
+    setOrdering('')
+    setPage(1)
+  }
+
+  const categoryLabel = categories.find(c => String(c.id) === String(category))?.name
+  const orderingLabel = {
+    price: 'Precio ↑',
+    '-price': 'Precio ↓',
+    name: 'Nombre ↑',
+    '-created_at': 'Recientes',
+  }[ordering]
+
   return (
     <div>
       <Navbar />
@@ -85,14 +130,44 @@ export default function Home() {
             className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 shadow-2xl shadow-black/50"
           >
             <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-              <div className="flex items-center gap-3 flex-1 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
+              <div className="relative flex-1">
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
                 <Search size={18} className="text-orange-400" />
                 <input
                   value={search}
                   onChange={e => { setSearch(e.target.value); setPage(1) }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
                   placeholder="Buscar repuestos por nombre, SKU o descripción..."
                 />
+                </div>
+                {showSuggestions && (suggestions.length > 0 || suggestLoading) && (
+                  <div className="absolute z-20 mt-2 w-full rounded-xl border border-white/10 bg-[#121212] shadow-xl">
+                    {suggestLoading ? (
+                      <div className="px-4 py-3 text-sm text-gray-400">Buscando...</div>
+                    ) : (
+                      <ul className="max-h-64 overflow-y-auto">
+                        {suggestions.map(s => (
+                          <li key={s.id}>
+                            <button
+                              type="button"
+                              onMouseDown={() => {
+                                setSearch(s.name)
+                                setShowSuggestions(false)
+                                setPage(1)
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/10"
+                            >
+                              <span className="font-medium">{s.name}</span>
+                              {s.sku && <span className="ml-2 text-xs text-gray-500">SKU: {s.sku}</span>}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
 
               <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
@@ -117,7 +192,7 @@ export default function Home() {
               <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
                 <input
                   value={year}
-                  onChange={e => { setYear(e.target.value); setPage(1) }}
+                  onChange={e => { setYear(onlyDigits(e.target.value)); setPage(1) }}
                   className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-24"
                   placeholder="Año"
                 />
@@ -138,6 +213,31 @@ export default function Home() {
                 <option value="-created_at">Recientes</option>
               </select>
             </div>
+            {(search || brand || model || year || category || ordering) && (
+              <div className="mt-4 flex flex-wrap gap-2 items-center">
+                {search && (
+                  <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Búsqueda: {search}</span>
+                )}
+                {brand && (
+                  <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Marca: {brand}</span>
+                )}
+                {model && (
+                  <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Modelo: {model}</span>
+                )}
+                {year && (
+                  <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Año: {year}</span>
+                )}
+                {category && (
+                  <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Categoría: {categoryLabel || category}</span>
+                )}
+                {ordering && (
+                  <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Orden: {orderingLabel || ordering}</span>
+                )}
+                <button type="button" onClick={clearFilters} className="text-xs text-orange-300 hover:text-orange-200">
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
           </motion.div>
         </div>
 
@@ -158,10 +258,12 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                className="flex flex-wrap gap-6"
               >
                 {items.map(item => (
-                  <RepuestoCard key={item.id} item={item} />
+                  <div key={item.id} className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]" style={{ maxWidth: '340px' }}>
+                    <RepuestoCard item={item} />
+                  </div>
                 ))}
               </motion.div>
             </AnimatePresence>
