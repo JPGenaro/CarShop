@@ -37,6 +37,19 @@ class Repuesto(models.Model):
 		return self.name
 
 
+class ImagenRepuesto(models.Model):
+	repuesto = models.ForeignKey(Repuesto, related_name='imagenes', on_delete=models.CASCADE)
+	image = models.ImageField(upload_to='repuestos/')
+	orden = models.PositiveIntegerField(default=0)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['orden', 'id']
+
+	def __str__(self):
+		return f"Imagen {self.orden} - {self.repuesto.name}"
+
+
 class UserProfile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
 	phone = models.CharField(max_length=30, blank=True)

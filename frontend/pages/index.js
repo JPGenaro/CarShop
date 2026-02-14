@@ -6,7 +6,7 @@ import Hero from '../components/Hero'
 import Footer from '../components/Footer'
 import RepuestoCard from '../components/RepuestoCard'
 import Pagination from '../components/Pagination'
-import Spinner from '../components/Spinner'
+import { SkeletonCard } from '../components/Skeleton'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
@@ -242,8 +242,12 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Spinner size={8} />
+          <div className="flex flex-wrap gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]" style={{ maxWidth: '340px' }}>
+                <SkeletonCard />
+              </div>
+            ))}
           </div>
         ) : error ? (
           <p className="text-red-400">{error}</p>

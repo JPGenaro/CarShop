@@ -4,7 +4,7 @@ import { Heart } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import RepuestoCard from '../components/RepuestoCard'
-import Spinner from '../components/Spinner'
+import { SkeletonCard } from '../components/Skeleton'
 import { useFavorites } from '../context/FavoritesContext'
 import { useAuth } from '../context/AuthContext'
 import Link from 'next/link'
@@ -42,8 +42,8 @@ export default function FavoritesPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Spinner size={8} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
           </div>
         ) : favorites.length === 0 ? (
           <p className="text-gray-400">No tienes favoritos aún. ¡Agrega productos desde el catálogo!</p>

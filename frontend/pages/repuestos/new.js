@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import RequireAuth from '../../components/RequireAuth'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
@@ -22,6 +23,7 @@ export default function NewRepuesto() {
   const [categoryId, setCategoryId] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [imageFile, setImageFile] = useState(null)
+  const [additionalImages, setAdditionalImages] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -67,47 +69,41 @@ export default function NewRepuesto() {
     }
 
     try {
-      let res
-      if (imageFile) {
-        const fd = new FormData()
-        fd.append('name', name)
-        fd.append('sku', sku)
-        fd.append('description', description)
-        fd.append('brand', brand)
-        fd.append('model', model)
-        if (year) fd.append('year', parseInt(year))
-        fd.append('price', parseFloat(price) || 0)
-        fd.append('stock', parseInt(stock) || 0)
-        if (categoryId) fd.append('category_id', categoryId)
-        fd.append('image', imageFile)
+      const fd = new FormData()
+      fd.append('name', name)
+      fd.append('sku', sku)
+      fd.append('description', description)
+      fd.append('brand', brand)
+      fd.append('model', model)
+      if (year) fd.append('year', parseInt(year))
+      fd.append('price', parseFloat(price) || 0)
+      fd.append('stock', parseInt(stock) || 0)
+      if (categoryId) fd.append('category_id', categoryId)
+      if (imageFile) fd.append('image', imageFile)
 
-        res = await fetchWithAuth('/repuestos/', {
-          method: 'POST',
-          body: fd,
-        })
-      } else {
-        const body = {
-          name,
-          sku,
-          description,
-          brand,
-          model,
-          year: year ? parseInt(year) : null,
-          price: parseFloat(price) || 0,
-          stock: parseInt(stock) || 0,
-          category_id: categoryId || null,
-          image: imageUrl || null,
-        }
-
-        res = await fetchWithAuth('/repuestos/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        })
-      }
+      const res = await fetchWithAuth('/repuestos/', {
+        method: 'POST',
+        body: fd,
+      })
 
       if (!res.ok) throw new Error('Error creando repuesto')
-      await res.json()
+      const newItem = await res.json()
+      
+      // Upload additional images if any
+      if (additionalImages.length > 0) {
+        for (let i = 0; i < additionalImages.length; i++) {
+          const imgFd = new FormData()
+          imgFd.append('repuesto', newItem.id)
+          imgFd.append('image', additionalImages[i])
+          imgFd.append('orden', i + 1)
+          
+          await fetchWithAuth('/imagenes/', {
+            method: 'POST',
+            body: imgFd,
+          })
+        }
+      }
+      
       router.push('/')
     } catch (err) {
       console.error(err)
@@ -185,14 +181,70 @@ export default function NewRepuesto() {
                 {fieldErrors.categoryId && <p className="text-sm text-red-400">{fieldErrors.categoryId}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium">Imagen (archivo) <span className="text-xs text-gray-500">o pega URL abajo</span></label>
-                <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} className="w-full mb-2" />
-                <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="w-full border border-white/10 rounded px-3 py-2 bg-black/40 text-gray-100" placeholder="https://... (opcional)" />
+                <label className="block text-sm font-medium mb-2 text-gray-200">Imagen Principal</label>
+                <div className="border border-white/10 rounded-lg p-4 bg-black/20">
+                  {imageFile ? (
+                    <div className="relative">
+                      <img src={URL.createObjectURL(imageFile)} alt="Preview" className="w-full h-48 object-cover rounded-lg mb-2" />
+                      <button
+                        type="button"
+                        onClick={() => setImageFile(null)}
+                        className="absolute top-2 right-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-48 cursor-pointer border-2 border-dashed border-white/20 rounded-lg hover:border-orange-400/50 transition-colors">
+                      <Upload size={32} className="text-gray-400 mb-2" />
+                      <span className="text-sm text-gray-400">Click para subir imagen</span>
+                      <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} className="hidden" />
+                    </label>
+                  )}
+                </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-200">Imágenes Adicionales (Galería)</label>
+                <div className="border border-white/10 rounded-lg p-4 bg-black/20">
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    {additionalImages.map((img, idx) => (
+                      <div key={idx} className="relative">
+                        <img src={URL.createObjectURL(img)} alt={`Preview ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                        <button
+                          type="button"
+                          onClick={() => setAdditionalImages(additionalImages.filter((_, i) => i !== idx))}
+                          className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <label className="flex items-center justify-center h-24 cursor-pointer border-2 border-dashed border-white/20 rounded-lg hover:border-orange-400/50 transition-colors">
+                    <ImageIcon size={24} className="text-gray-400 mr-2" />
+                    <span className="text-sm text-gray-400">Agregar imágenes</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      multiple
+                      onChange={e => {
+                        const files = Array.from(e.target.files || [])
+                        setAdditionalImages([...additionalImages, ...files])
+                      }}
+                      className="hidden" 
+                    />
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">{additionalImages.length} imagen(es) adicional(es)</p>
+                </div>
+              </div>
+
               {error && <p className="text-red-400">{error}</p>}
-              <div className="flex gap-3">
-                <button disabled={loading} className="bg-gradient-to-r from-red-600 to-orange-500 text-white px-4 py-2 rounded">Crear</button>
-                <button type="button" onClick={() => router.push('/')} className="px-4 py-2 border border-white/10 rounded text-gray-300">Cancelar</button>
+              <div className="flex gap-3 pt-4">
+                <button disabled={loading} className="flex-1 bg-gradient-to-r from-red-600 to-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  {loading ? 'Creando...' : 'Crear Repuesto'}
+                </button>
+                <button type="button" onClick={() => router.push('/')} className="px-6 py-3 border border-white/10 rounded-lg text-gray-300 hover:border-white/30 transition-colors">Cancelar</button>
               </div>
             </form>
           </div>

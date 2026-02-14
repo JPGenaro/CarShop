@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, Package } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import RequireAuth from '../components/RequireAuth'
+import { SkeletonList, SkeletonText } from '../components/Skeleton'
 import { useAuth } from '../context/AuthContext'
 import { fetchWithAuth } from '../lib/auth'
 

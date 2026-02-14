@@ -16,8 +16,9 @@ from .serializers import (
     FavoriteSerializer,
     ReviewSerializer,
     CouponSerializer,
+    ImagenRepuestoSerializer,
 )
-from .models import Categoria, Repuesto, UserProfile, Order, Notification, Favorite, Review, Coupon
+from .models import Categoria, Repuesto, UserProfile, Order, Notification, Favorite, Review, Coupon, ImagenRepuesto
 
 
 class RegisterView(generics.CreateAPIView):
@@ -246,3 +247,13 @@ class ValidateCouponView(APIView):
             return Response({'error': 'Cupón agotado'}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(CouponSerializer(coupon).data, status=status.HTTP_200_OK)
+
+
+class ImagenRepuestoViewSet(viewsets.ModelViewSet):
+    serializer_class = ImagenRepuestoSerializer
+    permission_classes = (permissions.IsAdminUser,)
+    queryset = ImagenRepuesto.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save()
+

@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Star } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Star, Edit, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 import Navbar from '../../components/Navbar'
+import { SkeletonDetail } from '../../components/Skeleton'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { fetchWithAuth } from '../../lib/auth'
@@ -18,8 +20,20 @@ export default function RepuestoDetail() {
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { addItem } = useCart()
   const { user } = useAuth()
+
+  const allImages = item ? [item.image, ...(item.imagenes || []).map(img => img.image)].filter(Boolean) : []
+
+  function nextImage() {
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length)
+  }
+
+  function prevImage() {
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length)
+  }
 
   useEffect(() => {
     if (!id) return
@@ -36,12 +50,24 @@ export default function RepuestoDetail() {
       const reviewsData = await reviewsRes.json()
       setItem(itemData)
       setReviews(reviewsData.results || reviewsData)
+      // Set initial selected image
+      const images = [itemData.image, ...(itemData.imagenes || []).map(img => img.image)].filter(Boolean)
+      if (images.length > 0) {
+        setSelectedImage(images[0])
+        setCurrentImageIndex(0)
+      }
     } catch (err) {
       console.error(err)
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (allImages.length > 0) {
+      setSelectedImage(allImages[currentImageIndex])
+    }
+  }, [currentImageIndex, item])
 
   async function handleSubmitReview(e) {
     e.preventDefault()
@@ -80,7 +106,7 @@ export default function RepuestoDetail() {
       <Navbar />
       <main className="container mx-auto py-10 px-4">
         {loading ? (
-          <p className="text-gray-400">Cargando...</p>
+          <SkeletonDetail />
         ) : item ? (
           <>
             <motion.div
@@ -89,11 +115,69 @@ export default function RepuestoDetail() {
               transition={{ duration: 0.4 }}
               className="grid grid-cols-1 lg:grid-cols-2 gap-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl shadow-black/50"
             >
-              <div className="overflow-hidden rounded-xl bg-black/40">
-                {item.image ? (
-                  <motion.img layoutId={`repuesto-image-${item.id}`} src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-64 w-full flex items-center justify-center text-gray-500">Sin imagen</div>
+              <div className="space-y-4">
+                <div className="relative overflow-hidden rounded-xl bg-black/40 group">
+                  {selectedImage ? (
+                    <AnimatePresence mode="wait">
+                      <motion.img 
+                        key={selectedImage}
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ duration: 0.3 }}
+                        src={selectedImage} 
+                        alt={item.name} 
+                        className="h-96 w-full object-cover" 
+                      />
+                    </AnimatePresence>
+                  ) : (
+                    <div className="h-96 w-full flex items-center justify-center text-gray-500">Sin imagen</div>
+                  )}
+                  
+                  {allImages.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ChevronLeft size={24} />
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ChevronRight size={24} />
+                      </button>
+                      
+                      <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
+                        {allImages.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setCurrentImageIndex(idx)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              idx === currentImageIndex ? 'bg-orange-400 w-6' : 'bg-white/50 hover:bg-white/70'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                {allImages.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {allImages.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                          currentImageIndex === idx ? 'border-orange-400' : 'border-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        <img src={img} alt={`Imagen ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
               <div>
@@ -121,6 +205,12 @@ export default function RepuestoDetail() {
                   <button onClick={() => addItem(item, 1)} className="px-4 py-2 rounded-md bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg shadow-red-500/20">
                     Agregar al carrito
                   </button>
+                  {user?.is_staff && (
+                    <Link href={`/repuestos/${item.id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-md border border-orange-400/50 text-orange-400 hover:bg-orange-400/10 transition-colors">
+                      <Edit size={18} />
+                      Editar producto
+                    </Link>
+                  )}
                 </div>
               </div>
             </motion.div>

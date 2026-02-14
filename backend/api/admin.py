@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Categoria, Repuesto, Order, OrderItem, Notification, Favorite, Review, Coupon
+from .models import Categoria, Repuesto, Order, OrderItem, Notification, Favorite, Review, Coupon, ImagenRepuesto
 
 
 @admin.register(Categoria)
@@ -8,11 +8,18 @@ class CategoriaAdmin(admin.ModelAdmin):
 	search_fields = ('name',)
 
 
+class ImagenRepuestoInline(admin.TabularInline):
+	model = ImagenRepuesto
+	extra = 1
+	fields = ('image', 'orden')
+
+
 @admin.register(Repuesto)
 class RepuestoAdmin(admin.ModelAdmin):
 	list_display = ('id', 'name', 'sku', 'category', 'price', 'stock')
 	list_filter = ('category',)
 	search_fields = ('name', 'sku')
+	inlines = [ImagenRepuestoInline]
 
 
 class OrderItemInline(admin.TabularInline):

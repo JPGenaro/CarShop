@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Plus } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { fetchWithAuth } from '../lib/auth'
 import { useCart } from '../context/CartContext'
@@ -21,6 +22,18 @@ export default function RepuestoCard({ item }) {
   const { addItem: addToCompare } = useCompare()
   const meta = [item.brand, item.model, item.year].filter(Boolean).join(' • ')
   const favorited = isFavorite(item.id)
+
+  // Carousel state
+  const allImages = [item.image, ...(item.imagenes || []).map(img => img.image)].filter(Boolean)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  useEffect(() => {
+    if (allImages.length <= 1) return
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % allImages.length)
+    }, 3000) // Change image every 3 seconds
+    return () => clearInterval(interval)
+  }, [allImages.length])
 
   async function handleDelete() {
     if (!confirm('¿Eliminar este repuesto?')) return
@@ -80,9 +93,32 @@ export default function RepuestoCard({ item }) {
           <Plus size={20} className="text-gray-300" />
         </button>
       </div>
-      {item.image && (
-        <div className="h-44 w-full mb-3 overflow-hidden rounded-xl bg-black/30 flex items-center justify-center">
-          <motion.img layoutId={`repuesto-image-${item.id}`} src={item.image} alt={item.name} className="object-cover h-full w-full" />
+      {allImages.length > 0 && (
+        <div className="h-44 w-full mb-3 overflow-hidden rounded-xl bg-black/30 flex items-center justify-center relative">
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentImageIndex}
+              src={allImages[currentImageIndex]}
+              alt={item.name}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="object-cover h-full w-full"
+            />
+          </AnimatePresence>
+          {allImages.length > 1 && (
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+              {allImages.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    idx === currentImageIndex ? 'bg-orange-400 w-4' : 'bg-white/40'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
       <h3 className="text-lg font-semibold text-gray-100">{item.name}</h3>

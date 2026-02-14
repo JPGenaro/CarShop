@@ -1,6 +1,12 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Categoria, Repuesto, UserProfile, Order, OrderItem, Notification, Favorite, Review, Coupon
+from .models import Categoria, Repuesto, UserProfile, Order, OrderItem, Notification, Favorite, Review, Coupon, ImagenRepuesto
+
+
+class ImagenRepuestoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagenRepuesto
+        fields = ('id', 'image', 'orden', 'created_at')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -177,11 +183,12 @@ class RepuestoSerializer(serializers.ModelSerializer):
         source='category', queryset=Categoria.objects.all(), write_only=True
     )
     image = serializers.ImageField(required=False, allow_null=True)
+    imagenes = ImagenRepuestoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Repuesto
         fields = (
-            'id', 'name', 'brand', 'model', 'year', 'sku', 'description', 'price', 'stock', 'image', 'category', 'category_id', 'created_at', 'updated_at'
+            'id', 'name', 'brand', 'model', 'year', 'sku', 'description', 'price', 'stock', 'image', 'imagenes', 'category', 'category_id', 'created_at', 'updated_at'
         )
         read_only_fields = ('created_at', 'updated_at')
 
