@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
-import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings } from 'lucide-react'
+import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useCompare } from '../context/CompareContext'
@@ -32,6 +32,10 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden lg:flex items-center gap-4">
+            <Link href="/#repuestos" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+              <Home size={18} />
+              Inicio
+            </Link>
             <Link href="/comparar" className="relative flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
               <GitCompare size={18} />
               Comparar
@@ -57,21 +61,36 @@ export default function Navbar() {
               )}
             </Link>
             {user?.is_staff && (
-              <Link href="/admin/assistant" className="text-sm text-gray-200 hover:text-orange-400">Asistente IA</Link>
+              <Link href="/admin/assistant" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+                <Settings size={18} />
+                Asistente IA
+              </Link>
             )}
             {user ? (
               <>
                 {user?.is_staff && (
-                  <Link href="/repuestos/new" className="text-sm text-gray-200 hover:text-orange-400">+ Nuevo</Link>
+                  <Link href="/repuestos/new" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+                    <PlusCircle size={18} />
+                    Nuevo
+                  </Link>
                 )}
-                <Link href="/mi-cuenta" className="text-sm text-gray-200 hover:text-orange-400">Mi cuenta</Link>
+                <Link href="/mi-cuenta" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+                  <User size={18} />
+                  Mi cuenta
+                </Link>
                 <span className="text-sm text-gray-400">Hola, {user.username}</span>
                 <button onClick={handleLogout} className="text-sm text-red-400 hover:text-red-300">Cerrar sesión</button>
               </>
             ) : (
               <>
-                <Link href="/login" className="text-sm text-gray-200 hover:text-orange-400">Login</Link>
-                <Link href="/register" className="text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md hover:opacity-95 shadow-lg shadow-red-500/20">Registrarse</Link>
+                <Link href="/login" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+                  <LogIn size={18} />
+                  Login
+                </Link>
+                <Link href="/register" className="flex items-center gap-2 text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md hover:opacity-95 shadow-lg shadow-red-500/20">
+                  <UserPlus size={18} />
+                  Registrarse
+                </Link>
               </>
             )}
           </div>
@@ -98,6 +117,10 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden mt-4 py-4 border-t border-white/10 space-y-3">
+            <Link href="/#repuestos" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
+              <Home size={18} />
+              Inicio
+            </Link>
             <Link href="/comparar" className="flex items-center justify-between py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
               <span className="flex items-center gap-2">
                 <GitCompare size={18} />
@@ -122,7 +145,8 @@ export default function Navbar() {
                   Asistente IA
                 </Link>
                 <Link href="/repuestos/new" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
-                  + Nuevo Producto
+                  <PlusCircle size={18} />
+                  Nuevo Producto
                 </Link>
               </>
             )}
@@ -140,10 +164,12 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/login" className="block py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/login" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
+                  <LogIn size={18} />
                   Login
                 </Link>
-                <Link href="/register" className="block text-center text-white bg-gradient-to-r from-red-600 to-orange-500 px-4 py-2 rounded-md shadow-lg shadow-red-500/20" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/register" className="flex items-center gap-2 justify-center text-white bg-gradient-to-r from-red-600 to-orange-500 px-4 py-2 rounded-md shadow-lg shadow-red-500/20" onClick={() => setMobileMenuOpen(false)}>
+                  <UserPlus size={18} />
                   Registrarse
                 </Link>
               </>
