@@ -7,6 +7,7 @@ import Footer from '../components/Footer'
 import RepuestoCard from '../components/RepuestoCard'
 import Pagination from '../components/Pagination'
 import { SkeletonCard } from '../components/Skeleton'
+import RecentlyViewed from '../components/RecentlyViewed'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
@@ -121,6 +122,7 @@ export default function Home() {
     <div>
       <Navbar />
       <Hero />
+      <RecentlyViewed />
       <main id="repuestos" className="container mx-auto py-12 px-4">
         <div className="flex items-center gap-3 mb-6">
           <Wrench className="text-orange-400" size={22} />

@@ -58,10 +58,33 @@ export default function RepuestoDetail() {
         setSelectedImage(images[0])
         setCurrentImageIndex(0)
       }
+      
+      // Save to recently viewed
+      saveToRecentlyViewed(itemData)
     } catch (err) {
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  function saveToRecentlyViewed(product) {
+    try {
+      const recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]')
+      // Remove if already exists
+      const filtered = recent.filter(p => p.id !== product.id)
+      // Add to beginning
+      const updated = [{ 
+        id: product.id, 
+        name: product.name, 
+        price: product.price, 
+        image: product.image,
+        brand: product.brand,
+        model: product.model
+      }, ...filtered].slice(0, 10) // Keep only last 10
+      localStorage.setItem('recentlyViewed', JSON.stringify(updated))
+    } catch (err) {
+      console.error('Error saving to recently viewed:', err)
     }
   }
 
