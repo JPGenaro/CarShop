@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { useState } from 'react'
-import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus, BarChart3 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus, BarChart3, ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useCompare } from '../context/CompareContext'
@@ -10,7 +10,24 @@ export default function Navbar() {
   const { items } = useCart()
   const { count: compareCount } = useCompare()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const adminMenuRef = useRef(null)
+  const userMenuRef = useRef(null)
   const count = items.reduce((acc, i) => acc + i.qty, 0)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (adminMenuRef.current && !adminMenuRef.current.contains(event.target)) {
+        setAdminMenuOpen(false)
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   function handleLogout() {
     logout()
@@ -31,12 +48,20 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center gap-4">
-            <Link href="/#repuestos" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+          <div className="hidden lg:flex items-center gap-6">
+            <Link href="/#repuestos" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400 transition-colors">
               <Home size={18} />
               Inicio
             </Link>
-            <Link href="/comparar" className="relative flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+            
+            {user && (
+              <Link href="/favoritos" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400 transition-colors">
+                <Heart size={18} />
+                Favoritos
+              </Link>
+            )}
+            
+            <Link href="/comparar" className="relative flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400 transition-colors">
               <GitCompare size={18} />
               Comparar
               {compareCount > 0 && (
@@ -45,13 +70,8 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            {user && (
-              <Link href="/favoritos" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
-                <Heart size={18} />
-                Favoritos
-              </Link>
-            )}
-            <Link href="/carrito" className="relative flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+            
+            <Link href="/carrito" className="relative flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400 transition-colors">
               <ShoppingCart size={18} />
               Carrito
               {count > 0 && (
@@ -60,44 +80,98 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+
+            {/* Admin Dropdown */}
             {user?.is_staff && (
-              <>
-                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
-                  <BarChart3 size={18} />
-                  Dashboard
-                </Link>
-                <Link href="/admin/assistant" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+              <div className="relative" ref={adminMenuRef}>
+                <button
+                  onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+                  className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400 transition-colors"
+                >
                   <Settings size={18} />
-                  Asistente IA
-                </Link>
-              </>
-            )}
-            {user ? (
-              <>
-                {user?.is_staff && (
-                  <Link href="/repuestos/new" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
-                    <PlusCircle size={18} />
-                    Nuevo
-                  </Link>
+                  Admin
+                  <ChevronDown size={14} className={`transition-transform ${adminMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {adminMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-lg border border-white/10 bg-black/95 backdrop-blur-xl shadow-xl">
+                    <div className="py-2">
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setAdminMenuOpen(false)}
+                      >
+                        <BarChart3 size={16} />
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/admin/assistant"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setAdminMenuOpen(false)}
+                      >
+                        <Settings size={16} />
+                        Asistente IA
+                      </Link>
+                      <Link
+                        href="/repuestos/new"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setAdminMenuOpen(false)}
+                      >
+                        <PlusCircle size={16} />
+                        Nuevo Producto
+                      </Link>
+                    </div>
+                  </div>
                 )}
-                <Link href="/mi-cuenta" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+              </div>
+            )}
+
+            {/* User Menu */}
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400 transition-colors"
+                >
                   <User size={18} />
-                  Mi cuenta
-                </Link>
-                <span className="text-sm text-gray-400">Hola, {user.username}</span>
-                <button onClick={handleLogout} className="text-sm text-red-400 hover:text-red-300">Cerrar sesión</button>
-              </>
+                  {user.username}
+                  <ChevronDown size={14} className={`transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-lg border border-white/10 bg-black/95 backdrop-blur-xl shadow-xl">
+                    <div className="py-2">
+                      <Link
+                        href="/mi-cuenta"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <User size={16} />
+                        Mi Cuenta
+                      </Link>
+                      <div className="border-t border-white/10 my-1"></div>
+                      <button
+                        onClick={() => { handleLogout(); setUserMenuOpen(false); }}
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors w-full text-left"
+                      >
+                        <LogOut size={16} />
+                        Cerrar Sesión
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
-              <>
-                <Link href="/login" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+              <div className="flex items-center gap-3">
+                <Link href="/login" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400 transition-colors">
                   <LogIn size={18} />
                   Login
                 </Link>
-                <Link href="/register" className="flex items-center gap-2 text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md hover:opacity-95 shadow-lg shadow-red-500/20">
+                <Link href="/register" className="flex items-center gap-2 text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-4 py-2 rounded-lg hover:opacity-95 shadow-lg shadow-red-500/20 transition-opacity">
                   <UserPlus size={18} />
                   Registrarse
                 </Link>
-              </>
+              </div>
             )}
           </div>
 
