@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ChevronDown, ChevronUp, Package } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import RequireAuth from '../components/RequireAuth'
@@ -23,6 +24,7 @@ export default function MiCuenta() {
   const [orders, setOrders] = useState([])
   const [notifications, setNotifications] = useState([])
   const [fieldErrors, setFieldErrors] = useState({})
+  const [expandedOrder, setExpandedOrder] = useState(null)
 
   const statusMap = {
     pending: 'Pendiente',
@@ -264,14 +266,94 @@ export default function MiCuenta() {
               ) : (
                 <div className="mt-4 space-y-3">
                   {orders.map(order => (
-                    <Link key={order.id} href={`/pedidos/${order.id}`} className="block border border-white/10 rounded-xl p-4 text-gray-300 hover:border-orange-400/50">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span>Orden #{order.id}</span>
-                        <span className="text-orange-300">{statusMap[order.status] || 'Desconocido'}</span>
-                      </div>
-                      <div className="text-sm text-gray-400">Total: ${Number(order.total || 0).toFixed(2)}</div>
-                      <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleString()}</div>
-                    </Link>
+                    <div key={order.id} className="border border-white/10 rounded-xl overflow-hidden">
+                      <button
+                        onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                        className="w-full p-4 text-left hover:bg-white/5 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <Package size={20} className="text-orange-400" />
+                            <div>
+                              <div className="text-gray-200 font-semibold">Orden #{order.id}</div>
+                              <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('es-AR')}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              order.status === 'delivered' ? 'bg-green-500/20 text-green-400' :
+                              order.status === 'shipped' ? 'bg-blue-500/20 text-blue-400' :
+                              order.status === 'paid' ? 'bg-orange-500/20 text-orange-400' :
+                              'bg-gray-500/20 text-gray-400'
+                            }`}>
+                              {statusMap[order.status] || 'Desconocido'}
+                            </span>
+                            {expandedOrder === order.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                          </div>
+                        </div>
+                        <div className="mt-2 text-lg font-bold text-orange-400">
+                          ${Number(order.total || 0).toFixed(2)}
+                        </div>
+                      </button>
+                      
+                      {expandedOrder === order.id && (
+                        <div className="border-t border-white/10 p-4 bg-black/20">
+                          <h3 className="text-sm font-semibold text-gray-300 mb-3">Productos</h3>
+                          <div className="space-y-2 mb-4">
+                            {order.items?.map((item, idx) => (
+                              <div key={idx} className="flex justify-between items-start text-sm">
+                                <div className="flex-1">
+                                  <div className="text-gray-200">{item.name}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {[item.brand, item.model, item.year].filter(Boolean).join(' • ')}
+                                  </div>
+                                  <div className="text-xs text-gray-500">SKU: {item.sku}</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-gray-300">x{item.qty}</div>
+                                  <div className="text-gray-400">${Number(item.price).toFixed(2)}</div>
+                                  <div className="font-semibold text-orange-400">
+                                    ${(Number(item.price) * item.qty).toFixed(2)}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          <div className="border-t border-white/10 pt-3 space-y-1 text-sm">
+                            <div className="flex justify-between text-gray-400">
+                              <span>Subtotal</span>
+                              <span>${(Number(order.total) / 1.21 + Number(order.discount_amount || 0)).toFixed(2)}</span>
+                            </div>
+                            {order.discount_amount > 0 && (
+                              <div className="flex justify-between text-green-400">
+                                <span>Descuento {order.coupon_code && `(${order.coupon_code})`}</span>
+                                <span>-${Number(order.discount_amount).toFixed(2)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-gray-400">
+                              <span>IVA (21%)</span>
+                              <span>${(Number(order.total) - Number(order.total) / 1.21).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between font-bold text-gray-100 pt-2 border-t border-white/10">
+                              <span>Total</span>
+                              <span className="text-orange-400">${Number(order.total).toFixed(2)}</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-white/10">
+                            <h3 className="text-sm font-semibold text-gray-300 mb-2">Datos de envío</h3>
+                            <div className="text-sm text-gray-400 space-y-1">
+                              <div>{order.address_line1}</div>
+                              {order.address_line2 && <div>{order.address_line2}</div>}
+                              <div>{order.city}, {order.province}</div>
+                              <div>CP: {order.postal_code}</div>
+                              <div className="pt-2">DNI: {order.dni} • Tel: {order.phone}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

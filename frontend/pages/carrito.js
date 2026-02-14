@@ -52,6 +52,11 @@ export default function CartPage() {
   async function handleApplyCoupon() {
     if (!couponCode.trim()) return
     setCouponError('')
+    setCoupon(null)
+    
+    console.log('Aplicando cupón:', couponCode)
+    console.log('Token:', token ? 'presente' : 'ausente')
+    
     try {
       const res = await fetch(`${API_BASE}/coupons/validate/`, {
         method: 'POST',
@@ -59,17 +64,24 @@ export default function CartPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ code: couponCode.toUpperCase() }),
+        body: JSON.stringify({ code: couponCode.trim().toUpperCase() }),
       })
+      
+      console.log('Status:', res.status)
+      
       if (res.ok) {
         const data = await res.json()
+        console.log('Cupón válido:', data)
         setCoupon(data)
+        setCouponError('')
       } else {
         const err = await res.json()
+        console.log('Error del servidor:', err)
         setCouponError(err.error || 'Cupón inválido')
         setCoupon(null)
       }
     } catch (e) {
+      console.error('Error al validar cupón:', e)
       setCouponError('Error al validar cupón')
       setCoupon(null)
     }
@@ -97,6 +109,8 @@ export default function CartPage() {
           model: i.model,
           year: i.year,
         })),
+        coupon_code: coupon?.code || null,
+        discount_amount: discount || 0,
       }
       const res = await fetchWithAuth('/orders/', {
         method: 'POST',

@@ -196,14 +196,18 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
+    coupon_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
 
     class Meta:
         model = Order
         fields = (
             'id', 'status', 'total', 'created_at',
             'phone', 'dni', 'address_line1', 'address_line2', 'city', 'province', 'postal_code', 'country',
+            'coupon_code', 'discount_amount',
             'items'
         )
+        read_only_fields = ('id', 'total', 'created_at', 'phone', 'dni', 'address_line1', 'address_line2', 'city', 'province', 'postal_code', 'country')
 
     def create(self, validated_data):
         items_data = validated_data.pop('items', [])
@@ -221,6 +225,8 @@ class OrderSerializer(serializers.ModelSerializer):
             province=getattr(profile, 'province', ''),
             postal_code=getattr(profile, 'postal_code', ''),
             country=getattr(profile, 'country', 'Argentina') or 'Argentina',
+            coupon_code=validated_data.get('coupon_code', None),
+            discount_amount=validated_data.get('discount_amount', 0),
         )
 
         total = 0
@@ -241,7 +247,9 @@ class OrderSerializer(serializers.ModelSerializer):
                 year=item.get('year') or (repuesto.year if repuesto else None),
             )
 
-        order.total = total
+        # Apply discount to total
+        discount = float(order.discount_amount or 0)
+        order.total = max(0, total - discount)
         order.save()
         return order
 

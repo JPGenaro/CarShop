@@ -64,6 +64,10 @@ class Order(models.Model):
 	total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	created_at = models.DateTimeField(auto_now_add=True)
 
+	# coupon/discount info
+	coupon_code = models.CharField(max_length=50, blank=True, null=True)
+	discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
 	# snapshot of shipping data
 	phone = models.CharField(max_length=30, blank=True)
 	dni = models.CharField(max_length=20, blank=True)

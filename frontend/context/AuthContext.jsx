@@ -46,8 +46,10 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  const token = getAccessToken()
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Spinner size={6} />
