@@ -97,6 +97,14 @@ export default function RepuestoDetail() {
     }
   }
 
+  function handleAddToCart() {
+    if (item.stock <= 0) {
+      alert('Este producto no está disponible en este momento')
+      return
+    }
+    addItem(item, 1)
+  }
+
   const avgRating = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : 0
@@ -181,7 +189,14 @@ export default function RepuestoDetail() {
                 )}
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Detalle técnico</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Detalle técnico</p>
+                  {item.stock <= 0 && (
+                    <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-semibold border border-red-400/30">
+                      Sin stock
+                    </span>
+                  )}
+                </div>
                 <h1 className="mt-3 text-3xl font-bold text-gray-100">{item.name}</h1>
                 <p className="text-sm text-gray-400 mt-1">SKU: {item.sku || '—'}</p>
                 {(item.brand || item.model || item.year) && (
@@ -202,8 +217,16 @@ export default function RepuestoDetail() {
                 <p className="mt-4 text-gray-300 leading-relaxed">{item.description}</p>
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                   <span className="text-2xl font-semibold text-orange-400">${item.price}</span>
-                  <button onClick={() => addItem(item, 1)} className="px-4 py-2 rounded-md bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg shadow-red-500/20">
-                    Agregar al carrito
+                  <button 
+                    onClick={handleAddToCart} 
+                    disabled={item.stock <= 0}
+                    className={`px-4 py-2 rounded-md shadow-lg transition-all ${
+                      item.stock <= 0 
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50' 
+                        : 'bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-red-500/20 hover:shadow-red-500/40'
+                    }`}
+                  >
+                    {item.stock <= 0 ? 'No disponible' : 'Agregar al carrito'}
                   </button>
                   {user?.is_staff && (
                     <Link href={`/repuestos/${item.id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-md border border-orange-400/50 text-orange-400 hover:bg-orange-400/10 transition-colors">

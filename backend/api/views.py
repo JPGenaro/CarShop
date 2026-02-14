@@ -297,10 +297,9 @@ class DashboardStatsView(APIView):
             'id', 'name', 'sku', 'stock', 'price'
         ).order_by('stock')[:10]
 
-        # Recent orders
-        recent_orders = Order.objects.all().order_by('-created_at')[:5].values(
-            'id', 'status', 'total', 'created_at'
-        )
+        # Recent orders with full details
+        recent_orders = Order.objects.select_related('user').prefetch_related('items').all().order_by('-created_at')[:5]
+        recent_orders_data = OrderSerializer(recent_orders, many=True).data
 
         # Summary stats
         total_products = Repuesto.objects.count()
@@ -316,7 +315,7 @@ class DashboardStatsView(APIView):
             'sales_by_day': sales_by_day,
             'top_products': list(top_products),
             'low_stock': list(low_stock),
-            'recent_orders': list(recent_orders),
+            'recent_orders': recent_orders_data,
             'summary': {
                 'total_products': total_products,
                 'total_orders': total_orders,

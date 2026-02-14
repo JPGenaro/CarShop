@@ -66,6 +66,16 @@ export default function RepuestoCard({ item }) {
     }
   }
 
+  function handleAddToCart() {
+    if (item.stock <= 0) {
+      alert('Este producto no está disponible en este momento')
+      return
+    }
+    addItem(item, 1)
+  }
+
+  const isOutOfStock = item.stock <= 0
+
   return (
     <motion.div
       layout
@@ -74,7 +84,13 @@ export default function RepuestoCard({ item }) {
       className="border border-white/10 rounded-2xl p-4 bg-white/5 backdrop-blur-xl shadow-lg shadow-black/40 flex flex-col relative"
     >
       <div className="absolute top-3 right-3 z-10 flex gap-2">
-        {user && (
+        {isOutOfStock && (
+          <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-semibold border border-red-400/30">
+            Sin stock
+          </span>
+        )}
+      </div>
+      <div className="absolute top-3 left-3 z-10 flex gap-2">{user && (
           <button
             onClick={toggleFavorite}
             className="p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
@@ -128,8 +144,16 @@ export default function RepuestoCard({ item }) {
       <p className="text-sm text-gray-400 mt-2">{truncate(item.description)}</p>
       <div className="flex items-center justify-end mt-4">
         <div className="flex items-center gap-2">
-          <button onClick={() => addItem(item, 1)} className="text-sm text-gray-100 px-3 py-1 rounded-md border border-white/20 hover:border-orange-400/60">
-            Agregar
+          <button 
+            onClick={handleAddToCart} 
+            disabled={isOutOfStock}
+            className={`text-sm px-3 py-1 rounded-md border transition-colors ${
+              isOutOfStock 
+                ? 'border-gray-600 text-gray-500 cursor-not-allowed opacity-50' 
+                : 'border-white/20 text-gray-100 hover:border-orange-400/60'
+            }`}
+          >
+            {isOutOfStock ? 'No disponible' : 'Agregar'}
           </button>
           <Link href={`/repuestos/${item.id}`} className="text-sm text-white bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 rounded-md shadow-md shadow-red-500/20">Ver</Link>
           {user?.is_staff && (

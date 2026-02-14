@@ -29,10 +29,27 @@ export function CartProvider({ children }) {
   }, [items])
 
   function addItem(product, qty = 1) {
+    // Check stock before adding
+    if (product.stock <= 0) {
+      alert('Este producto no está disponible en este momento')
+      return
+    }
+    
     setItems(prev => {
       const existing = prev.find(i => i.id === product.id)
       if (existing) {
-        return prev.map(i => (i.id === product.id ? { ...i, qty: i.qty + qty } : i))
+        const newQty = existing.qty + qty
+        // Check if new quantity exceeds stock
+        if (newQty > product.stock) {
+          alert(`Solo hay ${product.stock} unidades disponibles de este producto`)
+          return prev
+        }
+        return prev.map(i => (i.id === product.id ? { ...i, qty: newQty } : i))
+      }
+      // For new items, also check stock
+      if (qty > product.stock) {
+        alert(`Solo hay ${product.stock} unidades disponibles de este producto`)
+        return prev
       }
       return [...prev, { ...product, qty }]
     })
@@ -44,7 +61,17 @@ export function CartProvider({ children }) {
 
   function updateQty(id, qty) {
     if (qty <= 0) return removeItem(id)
-    setItems(prev => prev.map(i => (i.id === id ? { ...i, qty } : i)))
+    setItems(prev => prev.map(i => {
+      if (i.id === id) {
+        // Check stock when updating quantity
+        if (i.stock && qty > i.stock) {
+          alert(`Solo hay ${i.stock} unidades disponibles de este producto`)
+          return i // Don't update if exceeds stock
+        }
+        return { ...i, qty }
+      }
+      return i
+    }))
   }
 
   function clear() {

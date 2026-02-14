@@ -97,7 +97,33 @@ export default function CartPage() {
   async function handlePay() {
     if (!user) return
     if (!profileComplete) return
+    
     try {
+      // Validate stock for all items before proceeding
+      const stockValidation = await Promise.all(
+        items.map(async (item) => {
+          const res = await fetch(`${API_BASE}/repuestos/${item.id}/`)
+          const data = await res.json()
+          return {
+            id: item.id,
+            name: item.name,
+            requestedQty: item.qty,
+            availableStock: data.stock,
+            hasStock: data.stock >= item.qty
+          }
+        })
+      )
+      
+      const outOfStock = stockValidation.filter(v => !v.hasStock)
+      
+      if (outOfStock.length > 0) {
+        const errorMsg = outOfStock.map(item => 
+          `"${item.name}": solicitaste ${item.requestedQty} pero ${item.availableStock === 0 ? 'no hay stock' : `solo hay ${item.availableStock} disponible(s)`}`
+        ).join('\n')
+        alert(`No hay suficiente stock para los siguientes productos:\n\n${errorMsg}\n\nPor favor actualiza las cantidades.`)
+        return
+      }
+      
       const payload = {
         items: items.map(i => ({
           repuesto_id: i.id,
@@ -117,7 +143,17 @@ export default function CartPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Error orden')
+      
+      if (!res.ok) {
+        const errorData = await res.json()
+        if (errorData.items && errorData.items[0]) {
+          alert(errorData.items[0])
+        } else {
+          throw new Error('Error orden')
+        }
+        return
+      }
+      
       alert(`Pago simulado realizado con éxito. Total: $${totalWithDiscount.toFixed(2)}`)
       clear()
       setCoupon(null)

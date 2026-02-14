@@ -205,21 +205,34 @@ class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
     coupon_code = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = (
-            'id', 'status', 'total', 'created_at',
+            'id', 'user', 'status', 'total', 'created_at',
             'phone', 'dni', 'address_line1', 'address_line2', 'city', 'province', 'postal_code', 'country',
             'coupon_code', 'discount_amount',
             'items'
         )
         read_only_fields = ('id', 'total', 'created_at', 'phone', 'dni', 'address_line1', 'address_line2', 'city', 'province', 'postal_code', 'country')
 
+    def get_user(self, obj):
+        return {'id': obj.user.id, 'username': obj.user.username} if obj.user else None
+
     def create(self, validated_data):
         items_data = validated_data.pop('items', [])
         user = self.context['request'].user
         profile = getattr(user, 'profile', None)
+
+        # Validate stock before creating order
+        for item in items_data:
+            repuesto = item.get('repuesto')
+            qty = item.get('qty') or 1
+            if repuesto and repuesto.stock < qty:
+                raise serializers.ValidationError(
+                    f'Stock insuficiente para {repuesto.name}. No hay suficiente stock disponible.'
+                )
 
         order = Order.objects.create(
             user=user,
@@ -242,6 +255,8 @@ class OrderSerializer(serializers.ModelSerializer):
             price = item.get('price') or (repuesto.price if repuesto else 0)
             qty = item.get('qty') or 1
             total += float(price) * qty
+            
+            # Create order item
             OrderItem.objects.create(
                 order=order,
                 repuesto=repuesto,
@@ -253,6 +268,11 @@ class OrderSerializer(serializers.ModelSerializer):
                 model=item.get('model') or (repuesto.model if repuesto else ''),
                 year=item.get('year') or (repuesto.year if repuesto else None),
             )
+            
+            # Reduce stock
+            if repuesto:
+                repuesto.stock -= qty
+                repuesto.save()
 
         # Apply discount to total
         discount = float(order.discount_amount or 0)
