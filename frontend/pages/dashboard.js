@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { TrendingUp, Package, ShoppingCart, Users, AlertTriangle, DollarSign, Plus, ChevronDown, ChevronUp } from 'lucide-react'
+import { TrendingUp, Package, ShoppingCart, Users, AlertTriangle, DollarSign, Plus, ChevronDown, ChevronUp, Target, ShoppingBag, TrendingDown, Award, Eye } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import RequireAuth from '../components/RequireAuth'
@@ -257,6 +257,183 @@ export default function Dashboard() {
                   <Tooltip contentStyle={{ backgroundColor: '#1f1f1f', border: '1px solid #333', borderRadius: '8px' }} />
                 </PieChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* ANALYTICS AVANZADOS */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-100 mb-6 flex items-center gap-2">
+              <Target size={24} className="text-orange-400" />
+              Analytics Avanzados
+            </h2>
+
+            {/* Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              {/* Tasa de Conversión */}
+              <div className="rounded-2xl border border-green-500/20 bg-green-500/5 backdrop-blur-xl p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-400 text-sm">Tasa de Conversión</span>
+                  <Target className="text-green-400" size={24} />
+                </div>
+                <div className="text-3xl font-bold text-green-400">
+                  {stats?.analytics?.conversion_rate?.toFixed(1) || '0'}%
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats?.analytics?.users_with_orders || 0} de {stats?.summary?.total_customers || 0} clientes compraron
+                </p>
+                <div className="mt-2 text-xs text-gray-400">
+                  Últimos 30d: <span className="text-green-400 font-semibold">{stats?.analytics?.conversion_rate_30d?.toFixed(1) || '0'}%</span>
+                </div>
+              </div>
+
+              {/* Valor Promedio de Orden */}
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 backdrop-blur-xl p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-400 text-sm">Valor Promedio Orden</span>
+                  <ShoppingBag className="text-blue-400" size={24} />
+                </div>
+                <div className="text-3xl font-bold text-blue-400">
+                  ${stats?.analytics?.avg_order_value?.toFixed(2) || '0.00'}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Por cada compra realizada
+                </p>
+              </div>
+
+              {/* Abandono de Carrito */}
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/5 backdrop-blur-xl p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-400 text-sm">Abandono de Carrito</span>
+                  <TrendingDown className="text-red-400" size={24} />
+                </div>
+                <div className="text-3xl font-bold text-red-400">
+                  {stats?.analytics?.cart_abandonment_rate?.toFixed(1) || '0'}%
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats?.analytics?.active_users_30d - stats?.analytics?.recent_buyers_30d || 0} usuarios sin comprar
+                </p>
+                <div className="mt-2 text-xs text-gray-400">
+                  {stats?.analytics?.active_users_30d || 0} activos últimos 30d
+                </div>
+              </div>
+
+              {/* Productos por Orden */}
+              <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 backdrop-blur-xl p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-400 text-sm">Items por Orden</span>
+                  <Package className="text-purple-400" size={24} />
+                </div>
+                <div className="text-3xl font-bold text-purple-400">
+                  {((stats?.top_products?.reduce((sum, p) => sum + (p.total_sold || 0), 0) || 0) / (stats?.summary?.total_orders || 1)).toFixed(1)}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Productos vendidos por orden
+                </p>
+              </div>
+            </div>
+
+            {/* Top Products by Revenue & Category Sales */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Top Products by Revenue */}
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
+                  <Award size={18} className="text-yellow-400" />
+                  Top Productos por Ingresos
+                </h3>
+                <div className="space-y-3">
+                  {stats?.top_products_revenue?.slice(0, 5).map((product, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-black/20 border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                          idx === 0 ? 'bg-yellow-500/20 text-yellow-400' :
+                          idx === 1 ? 'bg-gray-400/20 text-gray-300' :
+                          idx === 2 ? 'bg-orange-500/20 text-orange-400' :
+                          'bg-gray-600/20 text-gray-400'
+                        }`}>
+                          #{idx + 1}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-200">{product.name}</div>
+                          <div className="text-xs text-gray-500">{product.sku}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-orange-400">${product.revenue?.toFixed(0) || 0}</div>
+                        <div className="text-xs text-gray-500">{product.total_sold} vendidos</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Category Sales */}
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-100 mb-4">Ventas por Categoría</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={stats?.analytics?.category_sales || []} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis type="number" stroke="#888" />
+                    <YAxis 
+                      type="category" 
+                      dataKey="repuesto__category__name" 
+                      stroke="#888" 
+                      width={100}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f1f1f', border: '1px solid #333', borderRadius: '8px' }}
+                    />
+                    <Bar dataKey="revenue" fill="#f97316" name="Ingresos ($)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Most Favorited & Price Distribution */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Most Favorited Products */}
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-100 mb-4 flex items-center gap-2">
+                  <Eye size={18} className="text-pink-400" />
+                  Productos Más Favoritos
+                </h3>
+                <div className="space-y-2">
+                  {stats?.analytics?.most_favorited?.slice(0, 5).map((product, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded bg-black/20 text-sm">
+                      <div className="flex items-center gap-2">
+                        {product.repuesto__image && (
+                          <img 
+                            src={product.repuesto__image} 
+                            alt={product.repuesto__name}
+                            className="w-10 h-10 object-cover rounded"
+                          />
+                        )}
+                        <span className="text-gray-200">{product.repuesto__name}</span>
+                      </div>
+                      <span className="text-pink-400 font-semibold">{product.favorite_count} ♥</span>
+                    </div>
+                  ))}
+                  {(!stats?.analytics?.most_favorited || stats.analytics.most_favorited.length === 0) && (
+                    <div className="text-gray-500 text-sm text-center py-4">Sin datos de favoritos</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Price Distribution */}
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-100 mb-4">Distribución de Órdenes por Precio</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={stats?.analytics?.price_distribution || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="range" stroke="#888" />
+                    <YAxis stroke="#888" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f1f1f', border: '1px solid #333', borderRadius: '8px' }}
+                    />
+                    <Bar dataKey="count" fill="#ea580c" name="Órdenes" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 

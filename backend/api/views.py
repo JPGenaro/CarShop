@@ -301,11 +301,16 @@ class DashboardStatsView(APIView):
                 'sales': float(daily_sales)
             })
 
-        # Top selling products
-        top_products = OrderItem.objects.values('name', 'sku').annotate(
+        # Top selling products (más vendidos por cantidad y por revenue)
+        top_products_qty = OrderItem.objects.values('name', 'sku', 'repuesto_id').annotate(
             total_sold=Sum('qty'),
             revenue=Sum(F('price') * F('qty'))
         ).order_by('-total_sold')[:10]
+
+        top_products_revenue = OrderItem.objects.values('name', 'sku', 'repuesto_id').annotate(
+            total_sold=Sum('qty'),
+            revenue=Sum(F('price') * F('qty'))
+        ).order_by('-revenue')[:10]
 
         # Low stock products
         low_stock = Repuesto.objects.filter(stock__lte=5).values(
@@ -321,6 +326,50 @@ class DashboardStatsView(APIView):
         total_orders = Order.objects.count()
         total_customers = User.objects.filter(is_staff=False).count()
 
+        # --- ANALYTICS AVANZADOS ---
+        
+        # Tasa de conversión (usuarios que compraron vs usuarios registrados)
+        users_with_orders = Order.objects.values('user').distinct().count()
+        conversion_rate = (users_with_orders / total_customers * 100) if total_customers > 0 else 0
+
+        # Tasa de conversión últimos 30 días
+        recent_users = User.objects.filter(date_joined__gte=thirty_days_ago, is_staff=False).count()
+        recent_buyers = Order.objects.filter(created_at__gte=thirty_days_ago).values('user').distinct().count()
+        conversion_rate_30d = (recent_buyers / recent_users * 100) if recent_users > 0 else 0
+
+        # Valor promedio de orden
+        avg_order_value = Order.objects.aggregate(avg=Sum('total'))['avg'] or 0
+        if total_orders > 0:
+            avg_order_value = float(total_revenue) / total_orders
+
+        # Productos más vistos (tracking desde localStorage - esto es estimado por reviews/favorites)
+        most_reviewed_products = Review.objects.values('repuesto__name', 'repuesto__id', 'repuesto__image').annotate(
+            review_count=Count('id')
+        ).order_by('-review_count')[:5]
+
+        most_favorited_products = Favorite.objects.values('repuesto__name', 'repuesto__id', 'repuesto__image').annotate(
+            favorite_count=Count('id')
+        ).order_by('-favorite_count')[:5]
+
+        # Tasa de abandono de carrito (estimación basada en items vs órdenes completadas)
+        # Usuarios que agregaron items al carrito pero no compraron (estimado por usuarios sin órdenes recientes)
+        total_users_active = User.objects.filter(is_staff=False, last_login__gte=thirty_days_ago).count()
+        cart_abandonment_rate = ((total_users_active - recent_buyers) / total_users_active * 100) if total_users_active > 0 else 0
+
+        # Distribución de órdenes por rango de precios
+        price_ranges = [
+            {'range': '0-500', 'count': Order.objects.filter(total__gte=0, total__lt=500).count()},
+            {'range': '500-1000', 'count': Order.objects.filter(total__gte=500, total__lt=1000).count()},
+            {'range': '1000-2500', 'count': Order.objects.filter(total__gte=1000, total__lt=2500).count()},
+            {'range': '2500+', 'count': Order.objects.filter(total__gte=2500).count()},
+        ]
+
+        # Productos por categoría vendidos
+        category_sales = OrderItem.objects.values('repuesto__category__name').annotate(
+            total_sold=Sum('qty'),
+            revenue=Sum(F('price') * F('qty'))
+        ).order_by('-revenue')[:10]
+
         return Response({
             'revenue': {
                 'total': float(total_revenue),
@@ -328,7 +377,8 @@ class DashboardStatsView(APIView):
             },
             'orders_by_status': list(orders_by_status),
             'sales_by_day': sales_by_day,
-            'top_products': list(top_products),
+            'top_products': list(top_products_qty),
+            'top_products_revenue': list(top_products_revenue),
             'low_stock': list(low_stock),
             'recent_orders': recent_orders_data,
             'summary': {
@@ -336,6 +386,19 @@ class DashboardStatsView(APIView):
                 'total_orders': total_orders,
                 'total_customers': total_customers,
                 'low_stock_count': Repuesto.objects.filter(stock__lte=5).count(),
+            },
+            'analytics': {
+                'conversion_rate': round(conversion_rate, 2),
+                'conversion_rate_30d': round(conversion_rate_30d, 2),
+                'avg_order_value': round(avg_order_value, 2),
+                'cart_abandonment_rate': round(cart_abandonment_rate, 2),
+                'users_with_orders': users_with_orders,
+                'active_users_30d': total_users_active,
+                'recent_buyers_30d': recent_buyers,
+                'most_reviewed': list(most_reviewed_products),
+                'most_favorited': list(most_favorited_products),
+                'price_distribution': price_ranges,
+                'category_sales': list(category_sales),
             }
         })
 
