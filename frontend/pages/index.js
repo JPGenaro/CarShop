@@ -26,6 +26,8 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [suggestLoading, setSuggestLoading] = useState(false)
+  const [priceRange, setPriceRange] = useState([0, 10000])
+  const [maxPrice, setMaxPrice] = useState(10000)
 
   function onlyDigits(value) {
     return value.replace(/\D/g, '')
@@ -54,6 +56,8 @@ export default function Home() {
     if (category) params.append('category', category)
     if (ordering) params.append('ordering', ordering)
     if (page) params.append('page', page)
+    if (priceRange[0] > 0) params.append('price__gte', priceRange[0])
+    if (priceRange[1] < maxPrice) params.append('price__lte', priceRange[1])
 
     fetch(`${API_BASE}/repuestos/?${params.toString()}`)
       .then(res => {
@@ -72,7 +76,7 @@ export default function Home() {
         setError('No se pudo cargar repuestos')
         setLoading(false)
       })
-  }, [search, brand, model, year, category, ordering, page])
+  }, [search, brand, model, year, category, ordering, page, priceRange, maxPrice])
 
   useEffect(() => {
     if (!search || search.trim().length < 2) {
@@ -101,6 +105,7 @@ export default function Home() {
     setYear('')
     setCategory('')
     setOrdering('')
+    setPriceRange([0, maxPrice])
     setPage(1)
   }
 
@@ -213,7 +218,84 @@ export default function Home() {
                 <option value="-created_at">Recientes</option>
               </select>
             </div>
-            {(search || brand || model || year || category || ordering) && (
+
+            {/* Price Range Slider */}
+            <div className="mt-4 p-4 rounded-xl bg-black/20 border border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-sm font-semibold text-gray-300">
+                  Rango de precio
+                </label>
+                <div className="text-sm text-orange-400 font-semibold">
+                  ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                </div>
+              </div>
+              
+              <div className="relative h-8 flex items-center">
+                {/* Track background */}
+                <div className="absolute w-full h-2 bg-gray-700 rounded-lg"></div>
+                
+                {/* Active range */}
+                <div 
+                  className="absolute h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg"
+                  style={{
+                    left: `${(priceRange[0] / maxPrice) * 100}%`,
+                    right: `${100 - (priceRange[1] / maxPrice) * 100}%`
+                  }}
+                ></div>
+                
+                {/* Min slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max={maxPrice}
+                  step="100"
+                  value={priceRange[0]}
+                  onChange={(e) => {
+                    const newMin = Number(e.target.value)
+                    if (newMin < priceRange[1]) {
+                      setPriceRange([newMin, priceRange[1]])
+                      setPage(1)
+                    }
+                  }}
+                  className="absolute w-full appearance-none bg-transparent pointer-events-none cursor-pointer"
+                  style={{
+                    WebkitAppearance: 'none',
+                    zIndex: 3
+                  }}
+                />
+                
+                {/* Max slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max={maxPrice}
+                  step="100"
+                  value={priceRange[1]}
+                  onChange={(e) => {
+                    const newMax = Number(e.target.value)
+                    if (newMax > priceRange[0]) {
+                      setPriceRange([priceRange[0], newMax])
+                      setPage(1)
+                    }
+                  }}
+                  className="absolute w-full appearance-none bg-transparent pointer-events-none cursor-pointer"
+                  style={{
+                    WebkitAppearance: 'none',
+                    zIndex: 4
+                  }}
+                  style={{
+                    WebkitAppearance: 'none',
+                  }}
+                />
+              </div>
+              
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>$0</span>
+                <span>${maxPrice.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {(search || brand || model || year || category || ordering || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
               <div className="mt-4 flex flex-wrap gap-2 items-center">
                 {search && (
                   <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Búsqueda: {search}</span>
@@ -232,6 +314,11 @@ export default function Home() {
                 )}
                 {ordering && (
                   <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">Orden: {orderingLabel || ordering}</span>
+                )}
+                {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                  <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-gray-200">
+                    Precio: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                  </span>
                 )}
                 <button type="button" onClick={clearFilters} className="text-xs text-orange-300 hover:text-orange-200">
                   Limpiar filtros

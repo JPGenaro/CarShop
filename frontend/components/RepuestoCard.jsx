@@ -110,32 +110,34 @@ export default function RepuestoCard({ item }) {
         </button>
       </div>
       {allImages.length > 0 && (
-        <div className="h-44 w-full mb-3 overflow-hidden rounded-xl bg-black/30 flex items-center justify-center relative">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={currentImageIndex}
-              src={allImages[currentImageIndex]}
-              alt={item.name}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="object-cover h-full w-full"
-            />
-          </AnimatePresence>
-          {allImages.length > 1 && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-              {allImages.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${
-                    idx === currentImageIndex ? 'bg-orange-400 w-4' : 'bg-white/40'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <Link href={`/repuestos/${item.id}`}>
+          <div className="h-44 w-full mb-3 overflow-hidden rounded-xl bg-black/30 flex items-center justify-center relative cursor-pointer hover:opacity-90 transition-opacity">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={currentImageIndex}
+                src={allImages[currentImageIndex]}
+                alt={item.name}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="object-cover h-full w-full"
+              />
+            </AnimatePresence>
+            {allImages.length > 1 && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                {allImages.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      idx === currentImageIndex ? 'bg-orange-400 w-4' : 'bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </Link>
       )}
       <h3 className="text-lg font-semibold text-gray-100">{item.name}</h3>
       <p className="text-sm text-gray-400">SKU: {item.sku || '—'}</p>
