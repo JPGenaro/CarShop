@@ -1,8 +1,10 @@
 from rest_framework import generics, permissions, viewsets, parsers, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
 import re
 from django.contrib.auth.models import User
+from django.utils import timezone
 from .serializers import (
     UserSerializer,
     RegisterSerializer,
@@ -11,8 +13,11 @@ from .serializers import (
     ProfileSerializer,
     OrderSerializer,
     NotificationSerializer,
+    FavoriteSerializer,
+    ReviewSerializer,
+    CouponSerializer,
 )
-from .models import Categoria, Repuesto, UserProfile, Order, Notification
+from .models import Categoria, Repuesto, UserProfile, Order, Notification, Favorite, Review, Coupon
 
 
 class RegisterView(generics.CreateAPIView):
@@ -180,3 +185,64 @@ class RepuestoViewSet(viewsets.ModelViewSet):
         if self.action in {'create', 'update', 'partial_update', 'destroy'}:
             return [permissions.IsAdminUser()]
         return [permissions.IsAuthenticatedOrReadOnly()]
+
+
+class FavoriteViewSet(viewsets.ModelViewSet):
+    serializer_class = FavoriteSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user).select_related('repuesto')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['delete'])
+    def remove(self, request):
+        repuesto_id = request.data.get('repuesto')
+        if not repuesto_id:
+            return Response({'error': 'repuesto requerido'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = Favorite.objects.filter(user=request.user, repuesto_id=repuesto_id).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        repuesto_id = self.request.query_params.get('repuesto')
+        if repuesto_id:
+            return Review.objects.filter(repuesto_id=repuesto_id).select_related('user')
+        return Review.objects.select_related('user', 'repuesto')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_permissions(self):
+        if self.action in {'create', 'update', 'partial_update', 'destroy'}:
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+
+class ValidateCouponView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        code = request.data.get('code', '').strip().upper()
+        if not code:
+            return Response({'error': 'Código requerido'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            coupon = Coupon.objects.get(code=code, active=True)
+        except Coupon.DoesNotExist:
+            return Response({'error': 'Cupón inválido o inactivo'}, status=status.HTTP_404_NOT_FOUND)
+        
+        now = timezone.now()
+        if now < coupon.valid_from or now > coupon.valid_to:
+            return Response({'error': 'Cupón expirado o no válido aún'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if coupon.usage_limit and coupon.times_used >= coupon.usage_limit:
+            return Response({'error': 'Cupón agotado'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(CouponSerializer(coupon).data, status=status.HTTP_200_OK)

@@ -94,8 +94,15 @@ class OrderItem(models.Model):
 
 
 class Notification(models.Model):
+	NOTIFICATION_TYPES = (
+		('order_status', 'Cambio de estado de orden'),
+		('stock_low', 'Stock bajo'),
+		('stock_high', 'Stock alto'),
+	)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-	order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='notifications')
+	order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+	repuesto = models.ForeignKey(Repuesto, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+	notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='order_status')
 	message = models.CharField(max_length=255)
 	is_read = models.BooleanField(default=False)
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -125,6 +132,87 @@ def create_status_notification(sender, instance, created, **kwargs):
 		Notification.objects.create(
 			user=instance.user,
 			order=instance,
+			notification_type='order_status',
 			message=f"Tu pedido #{instance.id} cambió a estado {instance.get_status_display()}.",
 		)
+
+
+@receiver(pre_save, sender=Repuesto)
+def store_previous_stock(sender, instance, **kwargs):
+	if not instance.pk:
+		instance._old_stock = None
+		return
+	try:
+		old = Repuesto.objects.get(pk=instance.pk)
+		instance._old_stock = old.stock
+	except Repuesto.DoesNotExist:
+		instance._old_stock = None
+
+
+@receiver(post_save, sender=Repuesto)
+def create_stock_notification(sender, instance, created, **kwargs):
+	if created:
+		return
+	old_stock = getattr(instance, '_old_stock', None)
+	if old_stock is None or old_stock == instance.stock:
+		return
+	
+	# Notificar a admins si el stock es bajo (<= 5)
+	if instance.stock <= 5 and old_stock > 5:
+		for admin in User.objects.filter(is_staff=True):
+			Notification.objects.create(
+				user=admin,
+				repuesto=instance,
+				notification_type='stock_low',
+				message=f"¡Stock bajo! {instance.name} tiene solo {instance.stock} unidades.",
+			)
+	# Notificar cuando el stock vuelve a niveles normales (> 20)
+	elif instance.stock > 20 and old_stock <= 20:
+		for admin in User.objects.filter(is_staff=True):
+			Notification.objects.create(
+				user=admin,
+				repuesto=instance,
+				notification_type='stock_high',
+				message=f"Stock recuperado: {instance.name} ahora tiene {instance.stock} unidades.",
+			)
+
+
+class Favorite(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
+	repuesto = models.ForeignKey(Repuesto, on_delete=models.CASCADE, related_name='favorited_by')
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		unique_together = ('user', 'repuesto')
+
+	def __str__(self):
+		return f"{self.user.username} - {self.repuesto.name}"
+
+
+class Review(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+	repuesto = models.ForeignKey(Repuesto, on_delete=models.CASCADE, related_name='reviews')
+	rating = models.PositiveIntegerField(default=5)  # 1-5
+	comment = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		unique_together = ('user', 'repuesto')
+
+	def __str__(self):
+		return f"{self.user.username} - {self.repuesto.name} ({self.rating}⭐)"
+
+
+class Coupon(models.Model):
+	code = models.CharField(max_length=50, unique=True)
+	discount_type = models.CharField(max_length=10, choices=[('percent', 'Porcentaje'), ('fixed', 'Fijo')], default='percent')
+	discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+	active = models.BooleanField(default=True)
+	valid_from = models.DateTimeField()
+	valid_to = models.DateTimeField()
+	usage_limit = models.PositiveIntegerField(null=True, blank=True)
+	times_used = models.PositiveIntegerField(default=0)
+
+	def __str__(self):
+		return f"{self.code} (-{self.discount_value}{'%' if self.discount_type == 'percent' else '$'})"
 

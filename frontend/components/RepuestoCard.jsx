@@ -1,9 +1,12 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
+import { Heart, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchWithAuth } from '../lib/auth'
 import { useCart } from '../context/CartContext'
+import { useFavorites } from '../context/FavoritesContext'
+import { useCompare } from '../context/CompareContext'
 
 function truncate(text, n = 120) {
   if (!text) return ''
@@ -14,18 +17,39 @@ export default function RepuestoCard({ item }) {
   const router = useRouter()
   const { user } = useAuth()
   const { addItem } = useCart()
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites()
+  const { addItem: addToCompare } = useCompare()
   const meta = [item.brand, item.model, item.year].filter(Boolean).join(' • ')
+  const favorited = isFavorite(item.id)
 
   async function handleDelete() {
     if (!confirm('¿Eliminar este repuesto?')) return
     try {
       const res = await fetchWithAuth(`/repuestos/${item.id}/`, { method: 'DELETE' })
       if (!res.ok) throw new Error('delete failed')
-      // refresh list
       router.reload()
     } catch (e) {
       console.error(e)
       alert('No se pudo eliminar')
+    }
+  }
+
+  async function toggleFavorite() {
+    if (!user) {
+      alert('Debes iniciar sesión para agregar favoritos')
+      return
+    }
+    if (favorited) {
+      await removeFavorite(item.id)
+    } else {
+      await addFavorite(item.id)
+    }
+  }
+
+  function handleAddToCompare() {
+    const added = addToCompare(item)
+    if (added) {
+      alert('Agregado al comparador')
     }
   }
 
@@ -34,8 +58,28 @@ export default function RepuestoCard({ item }) {
       layout
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="border border-white/10 rounded-2xl p-4 bg-white/5 backdrop-blur-xl shadow-lg shadow-black/40 flex flex-col"
+      className="border border-white/10 rounded-2xl p-4 bg-white/5 backdrop-blur-xl shadow-lg shadow-black/40 flex flex-col relative"
     >
+      <div className="absolute top-3 right-3 z-10 flex gap-2">
+        {user && (
+          <button
+            onClick={toggleFavorite}
+            className="p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+          >
+            <Heart
+              size={20}
+              className={favorited ? 'fill-red-500 text-red-500' : 'text-gray-300'}
+            />
+          </button>
+        )}
+        <button
+          onClick={handleAddToCompare}
+          className="p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+          title="Comparar"
+        >
+          <Plus size={20} className="text-gray-300" />
+        </button>
+      </div>
       {item.image && (
         <div className="h-44 w-full mb-3 overflow-hidden rounded-xl bg-black/30 flex items-center justify-center">
           <motion.img layoutId={`repuesto-image-${item.id}`} src={item.image} alt={item.name} className="object-cover h-full w-full" />

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Categoria, Repuesto, UserProfile, Order, OrderItem, Notification
+from .models import Categoria, Repuesto, UserProfile, Order, OrderItem, Notification, Favorite, Review, Coupon
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -252,3 +252,36 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'order_id', 'message', 'is_read', 'created_at')
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    repuesto_detail = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Favorite
+        fields = ('id', 'repuesto', 'repuesto_detail', 'created_at')
+        read_only_fields = ('id', 'created_at', 'repuesto_detail')
+
+    def get_repuesto_detail(self, obj):
+        return RepuestoSerializer(obj.repuesto).data
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ('id', 'user', 'username', 'repuesto', 'rating', 'comment', 'created_at')
+        read_only_fields = ('id', 'user', 'username', 'created_at')
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError('El rating debe estar entre 1 y 5.')
+        return value
+
+
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = ('id', 'code', 'discount_type', 'discount_value', 'active', 'valid_from', 'valid_to', 'usage_limit', 'times_used')
+        read_only_fields = ('id', 'times_used')

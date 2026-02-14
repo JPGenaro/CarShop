@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Categoria, Repuesto, Order, OrderItem, Notification
+from .models import Categoria, Repuesto, Order, OrderItem, Notification, Favorite, Review, Coupon
 
 
 @admin.register(Categoria)
@@ -35,3 +35,23 @@ class NotificationAdmin(admin.ModelAdmin):
 	list_display = ('id', 'user', 'order', 'is_read', 'created_at')
 	list_filter = ('is_read',)
 	search_fields = ('user__username', 'order__id', 'message')
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+	list_display = ('id', 'user', 'repuesto', 'created_at')
+	search_fields = ('user__username', 'repuesto__name')
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+	list_display = ('id', 'user', 'repuesto', 'rating', 'created_at')
+	list_filter = ('rating',)
+	search_fields = ('user__username', 'repuesto__name', 'comment')
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+	list_display = ('id', 'code', 'discount_type', 'discount_value', 'active', 'valid_from', 'valid_to', 'times_used')
+	list_filter = ('active', 'discount_type')
+	search_fields = ('code',)

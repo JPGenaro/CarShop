@@ -1,11 +1,13 @@
 import Link from 'next/link'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, Heart, GitCompare } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { useCompare } from '../context/CompareContext'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
   const { items } = useCart()
+  const { count: compareCount } = useCompare()
   const count = items.reduce((acc, i) => acc + i.qty, 0)
 
   function handleLogout() {
@@ -26,6 +28,21 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Link href="/comparar" className="relative flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+            <GitCompare size={18} />
+            Comparar
+            {compareCount > 0 && (
+              <span className="absolute -top-2 -right-3 text-xs bg-gradient-to-r from-red-600 to-orange-500 text-white px-1.5 py-0.5 rounded-full">
+                {compareCount}
+              </span>
+            )}
+          </Link>
+          {user && (
+            <Link href="/favoritos" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+              <Heart size={18} />
+              Favoritos
+            </Link>
+          )}
           <Link href="/carrito" className="relative flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
             <ShoppingCart size={18} />
             Carrito
