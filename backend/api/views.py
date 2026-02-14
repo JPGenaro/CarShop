@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 import re
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models import Sum, Count, Q, F
+from datetime import timedelta
 from .serializers import (
     UserSerializer,
     RegisterSerializer,
@@ -18,7 +20,7 @@ from .serializers import (
     CouponSerializer,
     ImagenRepuestoSerializer,
 )
-from .models import Categoria, Repuesto, UserProfile, Order, Notification, Favorite, Review, Coupon, ImagenRepuesto
+from .models import Categoria, Repuesto, UserProfile, Order, OrderItem, Notification, Favorite, Review, Coupon, ImagenRepuesto
 
 
 class RegisterView(generics.CreateAPIView):
@@ -256,4 +258,70 @@ class ImagenRepuestoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+
+
+class DashboardStatsView(APIView):
+    permission_classes = (permissions.IsAdminUser,)
+
+    def get(self, request):
+        # Total revenue
+        total_revenue = Order.objects.aggregate(total=Sum('total'))['total'] or 0
+
+        # Orders by status
+        orders_by_status = Order.objects.values('status').annotate(count=Count('id'))
+
+        # Sales by day (last 30 days)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        sales_by_day = []
+        for i in range(30):
+            date = thirty_days_ago + timedelta(days=i)
+            date_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+            date_end = date_start + timedelta(days=1)
+            daily_sales = Order.objects.filter(
+                created_at__gte=date_start,
+                created_at__lt=date_end
+            ).aggregate(total=Sum('total'))['total'] or 0
+            sales_by_day.append({
+                'date': date.strftime('%Y-%m-%d'),
+                'sales': float(daily_sales)
+            })
+
+        # Top selling products
+        top_products = OrderItem.objects.values('name', 'sku').annotate(
+            total_sold=Sum('qty'),
+            revenue=Sum(F('price') * F('qty'))
+        ).order_by('-total_sold')[:10]
+
+        # Low stock products
+        low_stock = Repuesto.objects.filter(stock__lte=5).values(
+            'id', 'name', 'sku', 'stock', 'price'
+        ).order_by('stock')[:10]
+
+        # Recent orders
+        recent_orders = Order.objects.all().order_by('-created_at')[:5].values(
+            'id', 'status', 'total', 'created_at'
+        )
+
+        # Summary stats
+        total_products = Repuesto.objects.count()
+        total_orders = Order.objects.count()
+        total_customers = User.objects.filter(is_staff=False).count()
+
+        return Response({
+            'revenue': {
+                'total': float(total_revenue),
+                'orders_count': total_orders,
+            },
+            'orders_by_status': list(orders_by_status),
+            'sales_by_day': sales_by_day,
+            'top_products': list(top_products),
+            'low_stock': list(low_stock),
+            'recent_orders': list(recent_orders),
+            'summary': {
+                'total_products': total_products,
+                'total_orders': total_orders,
+                'total_customers': total_customers,
+                'low_stock_count': Repuesto.objects.filter(stock__lte=5).count(),
+            }
+        })
 

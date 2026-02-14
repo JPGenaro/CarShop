@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
-import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus } from 'lucide-react'
+import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus, BarChart3 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useCompare } from '../context/CompareContext'
@@ -61,10 +61,16 @@ export default function Navbar() {
               )}
             </Link>
             {user?.is_staff && (
-              <Link href="/admin/assistant" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
-                <Settings size={18} />
-                Asistente IA
-              </Link>
+              <>
+                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+                  <BarChart3 size={18} />
+                  Dashboard
+                </Link>
+                <Link href="/admin/assistant" className="flex items-center gap-2 text-sm text-gray-200 hover:text-orange-400">
+                  <Settings size={18} />
+                  Asistente IA
+                </Link>
+              </>
             )}
             {user ? (
               <>
@@ -140,6 +146,10 @@ export default function Navbar() {
             )}
             {user?.is_staff && (
               <>
+                <Link href="/dashboard" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
+                  <BarChart3 size={18} />
+                  Dashboard
+                </Link>
                 <Link href="/admin/assistant" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
                   <Settings size={18} />
                   Asistente IA

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RegisterView, MeView, ProfileView, CategoriaViewSet, RepuestoViewSet, OrderViewSet, NotificationViewSet, AdminAssistantView, FavoriteViewSet, ReviewViewSet, ValidateCouponView, ImagenRepuestoViewSet
+from .views import RegisterView, MeView, ProfileView, CategoriaViewSet, RepuestoViewSet, OrderViewSet, NotificationViewSet, AdminAssistantView, FavoriteViewSet, ReviewViewSet, ValidateCouponView, ImagenRepuestoViewSet, DashboardStatsView
 
 router = DefaultRouter()
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
@@ -17,5 +17,6 @@ urlpatterns = [
     path('auth/me/', MeView.as_view(), name='auth_me'),
     path('auth/profile/', ProfileView.as_view(), name='auth_profile'),
     path('admin/assistant/', AdminAssistantView.as_view(), name='admin_assistant'),
+    path('admin/dashboard/', DashboardStatsView.as_view(), name='dashboard_stats'),
     path('coupons/validate/', ValidateCouponView.as_view(), name='validate_coupon'),
 ]
