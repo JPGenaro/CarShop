@@ -15,6 +15,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [stockInputs, setStockInputs] = useState({})
   const [expandedOrder, setExpandedOrder] = useState(null)
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [sortBy, setSortBy] = useState('date-desc')
+  const [searchId, setSearchId] = useState('')
 
   useEffect(() => {
     if (!user?.is_staff) return
@@ -65,6 +68,53 @@ export default function Dashboard() {
     // Only allow positive numbers
     const numValue = value.replace(/\D/g, '')
     setStockInputs(prev => ({ ...prev, [productId]: numValue }))
+  }
+
+  async function handleStatusChange(orderId, newStatus) {
+    try {
+      const res = await fetchWithAuth(`/orders/${orderId}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (!res.ok) throw new Error('Error al actualizar estado')
+      
+      await loadStats()
+      alert('Estado actualizado correctamente')
+    } catch (e) {
+      console.error('Error updating status:', e)
+      alert('No se pudo actualizar el estado')
+    }
+  }
+
+  function getFilteredOrders() {
+    let filtered = [...(stats?.recent_orders || [])]
+
+    // Filter by status
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(order => order.status === filterStatus)
+    }
+
+    // Filter by search ID
+    if (searchId.trim()) {
+      filtered = filtered.filter(order => 
+        order.id.toString().includes(searchId.trim())
+      )
+    }
+
+    // Sort orders
+    if (sortBy === 'date-desc') {
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    } else if (sortBy === 'date-asc') {
+      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    } else if (sortBy === 'price-desc') {
+      filtered.sort((a, b) => Number(b.total) - Number(a.total))
+    } else if (sortBy === 'price-asc') {
+      filtered.sort((a, b) => Number(a.total) - Number(b.total))
+    }
+
+    return filtered
   }
 
   if (!user?.is_staff) {
@@ -293,13 +343,62 @@ export default function Dashboard() {
           {/* Recent Orders */}
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
             <h2 className="text-xl font-semibold text-gray-100 mb-4">Órdenes Recientes</h2>
+            
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Filtrar por estado</label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/20 text-gray-100 focus:outline-none focus:border-orange-400/60"
+                >
+                  <option value="all">Todos</option>
+                  <option value="pending">Pendiente</option>
+                  <option value="paid">Pagado</option>
+                  <option value="shipped">Enviado</option>
+                  <option value="delivered">Entregado</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Ordenar por</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/20 text-gray-100 focus:outline-none focus:border-orange-400/60"
+                >
+                  <option value="date-desc">Más reciente</option>
+                  <option value="date-asc">Más antiguo</option>
+                  <option value="price-desc">Precio: Mayor a menor</option>
+                  <option value="price-asc">Precio: Menor a mayor</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Buscar por ID</label>
+                <input
+                  type="text"
+                  placeholder="Ej: 123"
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/20 text-gray-100 focus:outline-none focus:border-orange-400/60"
+                />
+              </div>
+            </div>
+
             <div className="space-y-3">
-              {stats?.recent_orders?.map((order) => (
-                <div key={order.id} className="border border-white/10 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                    className="w-full p-4 text-left hover:bg-white/5 transition-colors"
-                  >
+              {getFilteredOrders().length === 0 ? (
+                <div className="text-gray-400 text-center py-8">
+                  No se encontraron órdenes con los filtros seleccionados
+                </div>
+              ) : (
+                getFilteredOrders().map((order) => (
+                  <div key={order.id} className="border border-white/10 rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                      className="w-full p-4 text-left hover:bg-white/5 transition-colors"
+                    >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
                         <Package size={20} className="text-orange-400" />
@@ -383,10 +482,24 @@ export default function Dashboard() {
                           <div className="pt-2">DNI: {order.dni} • Tel: {order.phone}</div>
                         </div>
                       </div>
+
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <h3 className="text-sm font-semibold text-gray-300 mb-2">Estado del pedido</h3>
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/20 text-gray-100 focus:outline-none focus:border-orange-400/60"
+                        >
+                          <option value="pending">Pendiente</option>
+                          <option value="paid">Pagado</option>
+                          <option value="shipped">Enviado</option>
+                          <option value="delivered">Entregado</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                 </div>
-              ))}
+              )))}
             </div>
           </div>
         </main>

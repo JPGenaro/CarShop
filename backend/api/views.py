@@ -51,10 +51,25 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
+        # Admins can see all orders, users only see their own
+        if self.request.user.is_staff:
+            return Order.objects.all().order_by('-created_at')
         return Order.objects.filter(user=self.request.user).order_by('-created_at')
 
     def perform_create(self, serializer):
         serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        # Only admins can update orders
+        if not request.user.is_staff:
+            return Response({'detail': 'No tienes permiso para actualizar órdenes.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        # Only admins can update orders
+        if not request.user.is_staff:
+            return Response({'detail': 'No tienes permiso para actualizar órdenes.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().partial_update(request, *args, **kwargs)
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
