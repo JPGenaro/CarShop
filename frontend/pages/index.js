@@ -136,8 +136,8 @@ export default function Home() {
             transition={{ duration: 0.4 }}
             className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 shadow-2xl shadow-black/50"
           >
-            <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-              <div className="relative flex-1">
+            <div className="flex flex-col gap-4">
+              <div className="relative">
                 <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
                 <Search size={18} className="text-orange-400" />
                 <input
@@ -177,48 +177,51 @@ export default function Home() {
                 )}
               </div>
 
-              <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
-                <Filter size={18} className="text-orange-400" />
-                <input
-                  value={brand}
-                  onChange={e => { setBrand(e.target.value); setPage(1) }}
-                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-32"
-                  placeholder="Marca"
-                />
-              </motion.div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+                <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 xl:col-span-1">
+                  <Filter size={18} className="text-orange-400" />
+                  <input
+                    value={brand}
+                    onChange={e => { setBrand(e.target.value); setPage(1) }}
+                    className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
+                    placeholder="Marca"
+                  />
+                </motion.div>
 
-              <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
-                <input
-                  value={model}
-                  onChange={e => { setModel(e.target.value); setPage(1) }}
-                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-32"
-                  placeholder="Modelo"
-                />
-              </motion.div>
+                <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 xl:col-span-1">
+                  <input
+                    value={model}
+                    onChange={e => { setModel(e.target.value); setPage(1) }}
+                    className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
+                    placeholder="Modelo"
+                  />
+                </motion.div>
 
-              <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
-                <input
-                  value={year}
-                  onChange={e => { setYear(onlyDigits(e.target.value)); setPage(1) }}
-                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-24"
-                  placeholder="Año"
-                />
-              </motion.div>
+                <motion.div whileHover={{ y: -2 }} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 xl:col-span-1">
+                  <input
+                    value={year}
+                    onChange={e => { setYear(onlyDigits(e.target.value)); setPage(1) }}
+                    className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
+                    placeholder="Año"
+                  />
+                </motion.div>
 
-              <select value={category} onChange={e => { setCategory(e.target.value); setPage(1) }} className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-gray-100" disabled={loading}>
-                <option value="">Todas las categorías</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+                <select value={category} onChange={e => { setCategory(e.target.value); setPage(1) }} className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-gray-100 xl:col-span-2" disabled={loading}>
+                  <option value="">Todas las categorías</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
 
-              <select value={ordering} onChange={e => { setOrdering(e.target.value); setPage(1) }} className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-gray-100" disabled={loading}>
-                <option value="">Ordenar</option>
-                <option value="price">Precio ↑</option>
-                <option value="-price">Precio ↓</option>
-                <option value="name">Nombre ↑</option>
-                <option value="-created_at">Recientes</option>
-              </select>
+                <select value={ordering} onChange={e => { setOrdering(e.target.value); setPage(1) }} className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-gray-100 xl:col-span-1" disabled={loading}>
+                  <option value="">Ordenar</option>
+                  <option value="price">Precio ↑</option>
+                  <option value="-price">Precio ↓</option>
+                  <option value="name">Nombre ↑</option>
+                  <option value="-created_at">Recientes</option>
+                </select>
+
+              </div>
             </div>
 
             {/* Price Range Slider */}
@@ -295,6 +298,16 @@ export default function Home() {
                 <span>$0</span>
                 <span>${maxPrice.toLocaleString()}</span>
               </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="rounded-xl border border-orange-400/40 bg-black/40 px-4 py-2 text-sm text-orange-300 hover:border-orange-400/70 hover:text-orange-200 transition-colors"
+              >
+                Limpiar filtros
+              </button>
             </div>
 
             {(search || brand || model || year || category || ordering || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
