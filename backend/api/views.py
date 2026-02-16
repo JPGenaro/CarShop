@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions, viewsets, parsers, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -236,6 +237,25 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def _ensure_owner(self, request, review):
+        if review.user_id != request.user.id and not request.user.is_staff:
+            raise PermissionDenied('No autorizado')
+
+    def update(self, request, *args, **kwargs):
+        review = self.get_object()
+        self._ensure_owner(request, review)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        review = self.get_object()
+        self._ensure_owner(request, review)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        review = self.get_object()
+        self._ensure_owner(request, review)
+        return super().destroy(request, *args, **kwargs)
 
     def get_permissions(self):
         if self.action in {'create', 'update', 'partial_update', 'destroy'}:

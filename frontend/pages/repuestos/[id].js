@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Edit, ChevronLeft, ChevronRight, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon } from 'lucide-react'
+import { Star, Edit, ChevronLeft, ChevronRight, Share2, Facebook, Twitter, Linkedin, Link as LinkIcon, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Head from 'next/head'
 import Navbar from '../../components/Navbar'
@@ -116,6 +116,7 @@ export default function RepuestoDetail() {
     try {
       const res = await fetchWithAuth('/reviews/', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ repuesto: id, rating, comment }),
       })
       if (res.ok) {
@@ -132,6 +133,30 @@ export default function RepuestoDetail() {
       showToast('Error al enviar', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleDeleteReview(reviewId) {
+    if (!confirm('¿Eliminar tu opinión?')) return
+    try {
+      const res = await fetchWithAuth(`/reviews/${reviewId}/`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        setReviews(prev => prev.filter(r => r.id !== reviewId))
+        showToast('Opinión eliminada', 'success')
+      } else {
+        let err = {}
+        try {
+          err = await res.json()
+        } catch {
+          err = {}
+        }
+        showToast(err.detail || 'No se pudo eliminar', 'error')
+      }
+    } catch (e) {
+      console.error(e)
+      showToast('No se pudo eliminar', 'error')
     }
   }
 
@@ -420,16 +445,29 @@ export default function RepuestoDetail() {
                 <div className="space-y-4">
                   {reviews.map(review => (
                     <div key={review.id} className="p-4 rounded-xl border border-white/10 bg-white/5">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-gray-200">{review.username}</span>
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map(s => (
-                            <Star key={s} size={14} className={s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'} />
-                          ))}
+                      <div className="flex items-start justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-gray-200">{review.username}</span>
+                          <span className="text-xs text-gray-500">{new Date(review.created_at).toLocaleDateString('es-AR')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} size={14} className={s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'} />
+                            ))}
+                          </div>
+                          {user && review.user === user.id && (
+                            <button
+                              onClick={() => handleDeleteReview(review.id)}
+                              className="p-1 rounded hover:bg-white/10 text-red-400 hover:text-red-300"
+                              title="Eliminar"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-300">{review.comment}</p>
-                      <p className="text-xs text-gray-500 mt-2">{new Date(review.created_at).toLocaleDateString('es-AR')}</p>
+                      <p className="text-sm text-gray-300 mt-3 leading-relaxed">{review.comment}</p>
                     </div>
                   ))}
                 </div>
