@@ -36,36 +36,26 @@ export function CartProvider({ children }) {
       showToast('Este producto no está disponible en este momento', 'error')
       return
     }
-    
+
     if (qty > product.stock) {
       showToast(`Solo hay ${product.stock} unidades disponibles`, 'warning')
       return
     }
 
-    setItems(prev => {
-      const existing = prev.find(i => i.id === product.id)
-      if (existing) {
-        const newQty = existing.qty + qty
-        // Check if new quantity exceeds stock
-        if (newQty > product.stock) {
-          showToast(`Solo hay ${product.stock} unidades disponibles`, 'warning')
-          return prev
-        }
-        return prev.map(i => (i.id === product.id ? { ...i, qty: newQty } : i))
+    const existing = items.find(i => i.id === product.id)
+    if (existing) {
+      const newQty = existing.qty + qty
+      if (newQty > product.stock) {
+        showToast(`Solo hay ${product.stock} unidades disponibles`, 'warning')
+        return
       }
-      return [...prev, { ...product, qty }]
-    })
+      setItems(items.map(i => (i.id === product.id ? { ...i, qty: newQty } : i)))
+      showToast(`${product.name} actualizado en el carrito`, 'success')
+      return
+    }
 
-    // Show toast only once after adding/updating
-    setItems(prev => {
-      const existing = prev.find(i => i.id === product.id)
-      if (existing) {
-        showToast(`${product.name} actualizado en el carrito`, 'success')
-      } else {
-        showToast(`${product.name} añadido al carrito`, 'success')
-      }
-      return prev
-    })
+    setItems([...items, { ...product, qty }])
+    showToast(`${product.name} añadido al carrito`, 'success')
   }
 
   function removeItem(id) {

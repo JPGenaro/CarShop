@@ -258,6 +258,9 @@ class ValidateCouponView(APIView):
         
         now = timezone.now()
         if now < coupon.valid_from or now > coupon.valid_to:
+            if now > coupon.valid_to and coupon.active:
+                coupon.active = False
+                coupon.save(update_fields=['active'])
             return Response({'error': 'Cupón expirado o no válido aún'}, status=status.HTTP_400_BAD_REQUEST)
         
         if coupon.usage_limit and coupon.times_used >= coupon.usage_limit:

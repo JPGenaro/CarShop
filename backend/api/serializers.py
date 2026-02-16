@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.utils import timezone
 from rest_framework import serializers
 from .models import Categoria, Repuesto, UserProfile, Order, OrderItem, Notification, Favorite, Review, Coupon, ImagenRepuesto
 
@@ -234,6 +235,39 @@ class OrderSerializer(serializers.ModelSerializer):
                     f'Stock insuficiente para {repuesto.name}. No hay suficiente stock disponible.'
                 )
 
+        subtotal = 0
+        for item in items_data:
+            repuesto = item.get('repuesto')
+            price = item.get('price') or (repuesto.price if repuesto else 0)
+            qty = item.get('qty') or 1
+            subtotal += float(price) * qty
+
+        coupon = None
+        coupon_code = (validated_data.get('coupon_code') or '').strip().upper()
+        discount_amount = 0
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code, active=True)
+            except Coupon.DoesNotExist:
+                raise serializers.ValidationError('Cupón inválido o inactivo')
+
+            now = timezone.now()
+            if now < coupon.valid_from or now > coupon.valid_to:
+                if now > coupon.valid_to and coupon.active:
+                    coupon.active = False
+                    coupon.save(update_fields=['active'])
+                raise serializers.ValidationError('Cupón expirado o no válido aún')
+
+            if coupon.usage_limit and coupon.times_used >= coupon.usage_limit:
+                raise serializers.ValidationError('Cupón agotado')
+
+            if coupon.discount_type == 'percent':
+                discount_amount = (subtotal * float(coupon.discount_value)) / 100
+            else:
+                discount_amount = float(coupon.discount_value)
+
+            discount_amount = min(discount_amount, subtotal)
+
         order = Order.objects.create(
             user=user,
             status='paid',
@@ -245,8 +279,8 @@ class OrderSerializer(serializers.ModelSerializer):
             province=getattr(profile, 'province', ''),
             postal_code=getattr(profile, 'postal_code', ''),
             country=getattr(profile, 'country', 'Argentina') or 'Argentina',
-            coupon_code=validated_data.get('coupon_code', None),
-            discount_amount=validated_data.get('discount_amount', 0),
+            coupon_code=coupon_code or None,
+            discount_amount=discount_amount,
         )
 
         total = 0
@@ -278,6 +312,10 @@ class OrderSerializer(serializers.ModelSerializer):
         discount = float(order.discount_amount or 0)
         order.total = max(0, total - discount)
         order.save()
+
+        if coupon:
+            coupon.times_used = (coupon.times_used or 0) + 1
+            coupon.save()
         return order
 
 

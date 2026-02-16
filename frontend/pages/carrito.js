@@ -56,9 +56,6 @@ export default function CartPage() {
     setCouponError('')
     setCoupon(null)
     
-    console.log('Aplicando cupón:', couponCode)
-    console.log('Token:', token ? 'presente' : 'ausente')
-    
     try {
       const res = await fetch(`${API_BASE}/coupons/validate/`, {
         method: 'POST',
@@ -69,16 +66,30 @@ export default function CartPage() {
         body: JSON.stringify({ code: couponCode.trim().toUpperCase() }),
       })
       
-      console.log('Status:', res.status)
-      
       if (res.ok) {
         const data = await res.json()
-        console.log('Cupón válido:', data)
+        
+        // Validate expiration date on frontend as well
+        const now = new Date()
+        const validFrom = new Date(data.valid_from)
+        const validTo = new Date(data.valid_to)
+        
+        if (now < validFrom) {
+          setCouponError('Este cupón aún no está activo')
+          setCoupon(null)
+          return
+        }
+        
+        if (now > validTo) {
+          setCouponError('Este cupón ha expirado')
+          setCoupon(null)
+          return
+        }
+        
         setCoupon(data)
         setCouponError('')
       } else {
         const err = await res.json()
-        console.log('Error del servidor:', err)
         setCouponError(err.error || 'Cupón inválido')
         setCoupon(null)
       }
