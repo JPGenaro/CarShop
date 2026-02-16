@@ -5,12 +5,14 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import RequireAuth from '../components/RequireAuth'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { fetchWithAuth } from '../lib/auth'
 
 const COLORS = ['#f97316', '#ea580c', '#dc2626', '#fb923c']
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [stockInputs, setStockInputs] = useState({})
@@ -40,7 +42,7 @@ export default function Dashboard() {
   async function handleAddStock(productId, currentStock) {
     const amountToAdd = stockInputs[productId]
     if (!amountToAdd || amountToAdd <= 0) {
-      alert('Ingresa una cantidad válida')
+      showToast('Ingresa una cantidad válida', 'warning')
       return
     }
 
@@ -57,10 +59,10 @@ export default function Dashboard() {
       // Clear input and reload stats
       setStockInputs(prev => ({ ...prev, [productId]: '' }))
       await loadStats()
-      alert('Stock actualizado correctamente')
+      showToast('Stock actualizado correctamente', 'success')
     } catch (e) {
       console.error('Error updating stock:', e)
-      alert('No se pudo actualizar el stock')
+      showToast('No se pudo actualizar el stock', 'error')
     }
   }
 
@@ -81,10 +83,10 @@ export default function Dashboard() {
       if (!res.ok) throw new Error('Error al actualizar estado')
       
       await loadStats()
-      alert('Estado actualizado correctamente')
+      showToast('Estado actualizado correctamente', 'success')
     } catch (e) {
       console.error('Error updating status:', e)
-      alert('No se pudo actualizar el estado')
+      showToast('No se pudo actualizar el estado', 'error')
     }
   }
 

@@ -8,6 +8,7 @@ import { fetchWithAuth } from '../lib/auth'
 import { useCart } from '../context/CartContext'
 import { useFavorites } from '../context/FavoritesContext'
 import { useCompare } from '../context/CompareContext'
+import { useToast } from '../context/ToastContext'
 
 function truncate(text, n = 120) {
   if (!text) return ''
@@ -20,6 +21,7 @@ export default function RepuestoCard({ item }) {
   const { addItem } = useCart()
   const { isFavorite, addFavorite, removeFavorite } = useFavorites()
   const { addItem: addToCompare } = useCompare()
+  const { showToast } = useToast()
   const meta = [item.brand, item.model, item.year].filter(Boolean).join(' • ')
   const favorited = isFavorite(item.id)
 
@@ -42,33 +44,36 @@ export default function RepuestoCard({ item }) {
       if (!res.ok) throw new Error('delete failed')
       router.reload()
     } catch (e) {
-      console.error(e)
-      alert('No se pudo eliminar')
+      showToast('No se pudo eliminar', 'error')
     }
   }
 
   async function toggleFavorite() {
     if (!user) {
-      alert('Debes iniciar sesión para agregar favoritos')
+      showToast('Debes iniciar sesión para agregar favoritos', 'info')
       return
     }
     if (favorited) {
       await removeFavorite(item.id)
+      showToast('Eliminado de favoritos', 'info')
     } else {
       await addFavorite(item.id)
+      showToast('Agregado a favoritos', 'success')
     }
   }
 
   function handleAddToCompare() {
     const added = addToCompare(item)
     if (added) {
-      alert('Agregado al comparador')
+      showToast('Agregado al comparador', 'success')
+    } else {
+      showToast('Máximo 4 productos para comparar', 'warning')
     }
   }
 
   function handleAddToCart() {
     if (item.stock <= 0) {
-      alert('Este producto no está disponible en este momento')
+      showToast('Este producto no está disponible', 'error')
       return
     }
     addItem(item, 1)

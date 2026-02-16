@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useToast } from './ToastContext'
 
 const CartContext = createContext(null)
 
@@ -19,6 +20,7 @@ function writeCart(items) {
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([])
+  const { showToast } = useToast()
 
   useEffect(() => {
     setItems(readCart())
@@ -31,27 +33,38 @@ export function CartProvider({ children }) {
   function addItem(product, qty = 1) {
     // Check stock before adding
     if (product.stock <= 0) {
-      alert('Este producto no está disponible en este momento')
+      showToast('Este producto no está disponible en este momento', 'error')
       return
     }
     
+    if (qty > product.stock) {
+      showToast(`Solo hay ${product.stock} unidades disponibles`, 'warning')
+      return
+    }
+
     setItems(prev => {
       const existing = prev.find(i => i.id === product.id)
       if (existing) {
         const newQty = existing.qty + qty
         // Check if new quantity exceeds stock
         if (newQty > product.stock) {
-          alert(`Solo hay ${product.stock} unidades disponibles de este producto`)
+          showToast(`Solo hay ${product.stock} unidades disponibles`, 'warning')
           return prev
         }
         return prev.map(i => (i.id === product.id ? { ...i, qty: newQty } : i))
       }
-      // For new items, also check stock
-      if (qty > product.stock) {
-        alert(`Solo hay ${product.stock} unidades disponibles de este producto`)
-        return prev
-      }
       return [...prev, { ...product, qty }]
+    })
+
+    // Show toast only once after adding/updating
+    setItems(prev => {
+      const existing = prev.find(i => i.id === product.id)
+      if (existing) {
+        showToast(`${product.name} actualizado en el carrito`, 'success')
+      } else {
+        showToast(`${product.name} añadido al carrito`, 'success')
+      }
+      return prev
     })
   }
 
@@ -65,7 +78,7 @@ export function CartProvider({ children }) {
       if (i.id === id) {
         // Check stock when updating quantity
         if (i.stock && qty > i.stock) {
-          alert(`Solo hay ${i.stock} unidades disponibles de este producto`)
+          showToast(`Solo hay ${i.stock} unidades disponibles`, 'warning')
           return i // Don't update if exceeds stock
         }
         return { ...i, qty }

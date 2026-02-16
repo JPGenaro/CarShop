@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { fetchWithAuth } from '../lib/auth'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
@@ -10,6 +11,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 export default function CartPage() {
   const { items, updateQty, removeItem, clear, summary } = useCart()
   const { user, token } = useAuth()
+  const { showToast } = useToast()
   const [profile, setProfile] = useState(null)
   const [profileError, setProfileError] = useState(null)
   const [couponCode, setCouponCode] = useState('')
@@ -117,10 +119,7 @@ export default function CartPage() {
       const outOfStock = stockValidation.filter(v => !v.hasStock)
       
       if (outOfStock.length > 0) {
-        const errorMsg = outOfStock.map(item => 
-          `"${item.name}": solicitaste ${item.requestedQty} pero ${item.availableStock === 0 ? 'no hay stock' : `solo hay ${item.availableStock} disponible(s)`}`
-        ).join('\n')
-        alert(`No hay suficiente stock para los siguientes productos:\n\n${errorMsg}\n\nPor favor actualiza las cantidades.`)
+        showToast(`No hay stock para algunos productos. Actualiza las cantidades.`, 'error')
         return
       }
       
@@ -147,19 +146,19 @@ export default function CartPage() {
       if (!res.ok) {
         const errorData = await res.json()
         if (errorData.items && errorData.items[0]) {
-          alert(errorData.items[0])
+          showToast(errorData.items[0], 'error')
         } else {
           throw new Error('Error orden')
         }
         return
       }
       
-      alert(`Pago simulado realizado con éxito. Total: $${totalWithDiscount.toFixed(2)}`)
+      showToast(`Pago realizado con éxito. Total: $${totalWithDiscount.toFixed(2)}`, 'success')
       clear()
       setCoupon(null)
       setCouponCode('')
     } catch (e) {
-      alert('No se pudo procesar el pago simulado')
+      showToast('No se pudo procesar el pago', 'error')
     }
   }
 

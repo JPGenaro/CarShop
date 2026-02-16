@@ -26,11 +26,9 @@ export function CompareProvider({ children }) {
 
   function addItem(item) {
     if (items.length >= 4) {
-      alert('Máximo 4 productos para comparar')
       return false
     }
     if (items.find(i => i.id === item.id)) {
-      alert('Este producto ya está en el comparador')
       return false
     }
     setItems([...items, item])

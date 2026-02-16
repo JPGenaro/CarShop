@@ -8,6 +8,7 @@ import Navbar from '../../components/Navbar'
 import { SkeletonDetail } from '../../components/Skeleton'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { fetchWithAuth } from '../../lib/auth'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
@@ -26,6 +27,7 @@ export default function RepuestoDetail() {
   const [showShareMenu, setShowShareMenu] = useState(false)
   const { addItem } = useCart()
   const { user } = useAuth()
+  const { showToast } = useToast()
 
   const allImages = item ? [item.image, ...(item.imagenes || []).map(img => img.image)].filter(Boolean) : []
 
@@ -107,7 +109,7 @@ export default function RepuestoDetail() {
   async function handleSubmitReview(e) {
     e.preventDefault()
     if (!user) {
-      alert('Debes iniciar sesión para opinar')
+      showToast('Debes iniciar sesión para opinar', 'info')
       return
     }
     setSubmitting(true)
@@ -119,14 +121,15 @@ export default function RepuestoDetail() {
       if (res.ok) {
         setComment('')
         setRating(5)
+        showToast('Opinión publicada con éxito', 'success')
         await fetchData()
       } else {
         const err = await res.json()
-        alert(err.detail || 'Error al enviar opinión')
+        showToast(err.detail || 'Error al enviar opinión', 'error')
       }
     } catch (e) {
       console.error(e)
-      alert('Error al enviar')
+      showToast('Error al enviar', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -134,7 +137,7 @@ export default function RepuestoDetail() {
 
   function handleAddToCart() {
     if (item.stock <= 0) {
-      alert('Este producto no está disponible en este momento')
+      showToast('Este producto no está disponible en este momento', 'error')
       return
     }
     addItem(item, 1)
@@ -153,7 +156,7 @@ export default function RepuestoDetail() {
 
     if (platform === 'copy') {
       navigator.clipboard.writeText(url)
-      alert('Enlace copiado al portapapeles')
+      showToast('Enlace copiado al portapapeles', 'success')
       setShowShareMenu(false)
       return
     }
