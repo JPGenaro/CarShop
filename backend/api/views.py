@@ -238,6 +238,23 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        repuesto = serializer.validated_data.get('repuesto')
+        existing = Review.objects.filter(user=request.user, repuesto=repuesto).first()
+
+        if existing:
+            existing.rating = serializer.validated_data.get('rating', existing.rating)
+            existing.comment = serializer.validated_data.get('comment', existing.comment)
+            existing.save()
+            out = self.get_serializer(existing)
+            return Response(out.data, status=status.HTTP_200_OK)
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def _ensure_owner(self, request, review):
         if review.user_id != request.user.id and not request.user.is_staff:
             raise PermissionDenied('No autorizado')

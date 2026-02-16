@@ -22,6 +22,7 @@ export default function RepuestoDetail() {
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showShareMenu, setShowShareMenu] = useState(false)
@@ -106,12 +107,18 @@ export default function RepuestoDetail() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showShareMenu])
 
-  async function handleSubmitReview(e) {
-    e.preventDefault()
+  async function submitReview(skipConfirm = false) {
     if (!user) {
       showToast('Debes iniciar sesión para opinar', 'info')
       return
     }
+
+    const existingReview = reviews.find(r => r.user === user.id)
+    if (existingReview && !skipConfirm) {
+      setShowUpdateConfirm(true)
+      return
+    }
+
     setSubmitting(true)
     try {
       const res = await fetchWithAuth('/reviews/', {
@@ -122,7 +129,11 @@ export default function RepuestoDetail() {
       if (res.ok) {
         setComment('')
         setRating(5)
-        showToast('Opinión publicada con éxito', 'success')
+        if (res.status === 200) {
+          showToast('Opinión actualizada con éxito', 'success')
+        } else {
+          showToast('Opinión publicada con éxito', 'success')
+        }
         await fetchData()
       } else {
         const err = await res.json()
@@ -134,6 +145,11 @@ export default function RepuestoDetail() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  async function handleSubmitReview(e) {
+    e.preventDefault()
+    await submitReview(false)
   }
 
   async function handleDeleteReview(reviewId) {
@@ -439,6 +455,36 @@ export default function RepuestoDetail() {
                 </form>
               )}
 
+              {showUpdateConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                  <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111]/90 p-6 shadow-2xl">
+                    <h3 className="text-lg font-semibold text-white">Actualizar opinión</h3>
+                    <p className="mt-2 text-sm text-gray-300">
+                      Ya dejaste una opinión en este producto. ¿Querés actualizarla con tu nuevo comentario?
+                    </p>
+                    <div className="mt-5 flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowUpdateConfirm(false)}
+                        className="px-4 py-2 rounded-md border border-white/20 text-gray-200 hover:border-white/40"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setShowUpdateConfirm(false)
+                          await submitReview(true)
+                        }}
+                        className="px-4 py-2 rounded-md bg-gradient-to-r from-red-600 to-orange-500 text-white"
+                      >
+                        Actualizar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {reviews.length === 0 ? (
                 <p className="text-gray-400">No hay opiniones aún. ¡Sé el primero!</p>
               ) : (
@@ -456,7 +502,7 @@ export default function RepuestoDetail() {
                               <Star key={s} size={14} className={s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'} />
                             ))}
                           </div>
-                          {user && review.user === user.id && (
+                          {user && (review.user === user.id || user.is_staff) && (
                             <button
                               onClick={() => handleDeleteReview(review.id)}
                               className="p-1 rounded hover:bg-white/10 text-red-400 hover:text-red-300"
