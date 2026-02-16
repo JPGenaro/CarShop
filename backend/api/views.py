@@ -6,7 +6,8 @@ from rest_framework.decorators import action
 import re
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.db.models import Sum, Count, Q, F
+from django.db.models import Sum, Count, Q, F, CharField
+from django.db.models.functions import Cast
 from datetime import timedelta
 from .serializers import (
     UserSerializer,
@@ -193,12 +194,30 @@ class RepuestoViewSet(viewsets.ModelViewSet):
         'stock': ['exact', 'lt', 'gt', 'lte', 'gte'],
         'category': ['exact'],
         'sku': ['exact'],
-        'brand': ['exact'],
-        'model': ['exact'],
-        'year': ['exact', 'lt', 'gt', 'lte', 'gte'],
+        'brand': ['icontains'],
+        'model': ['icontains'],
     }
     search_fields = ('name', 'description', 'sku', 'brand', 'model')
     ordering_fields = ('price', 'created_at', 'name', 'year')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        brand = self.request.query_params.get('brand', '').strip()
+        model = self.request.query_params.get('model', '').strip()
+        year = self.request.query_params.get('year', '').strip()
+
+        if brand:
+            qs = qs.filter(brand__icontains=brand)
+        if model:
+            qs = qs.filter(model__icontains=model)
+        if year:
+            year_digits = ''.join(ch for ch in year if ch.isdigit())
+            if len(year_digits) == 4:
+                qs = qs.filter(year=int(year_digits))
+            else:
+                qs = qs.annotate(year_str=Cast('year', CharField())).filter(year_str__startswith=year_digits or year)
+
+        return qs
 
     def get_permissions(self):
         if self.action in {'create', 'update', 'partial_update', 'destroy'}:
