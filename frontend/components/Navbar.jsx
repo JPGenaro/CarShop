@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus, BarChart3, ChevronDown } from 'lucide-react'
+import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus, BarChart3, ChevronDown, Tag, TicketPercent } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useCompare } from '../context/CompareContext'
@@ -119,6 +119,30 @@ export default function Navbar() {
                       >
                         <PlusCircle size={16} />
                         Nuevo Producto
+                      </Link>
+                      <Link
+                        href="/categorias/new"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setAdminMenuOpen(false)}
+                      >
+                        <Tag size={16} />
+                        Nueva Categoría
+                      </Link>
+                      <Link
+                        href="/cupones"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setAdminMenuOpen(false)}
+                      >
+                        <TicketPercent size={16} />
+                        Cupones
+                      </Link>
+                      <Link
+                        href="/cupones/new"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setAdminMenuOpen(false)}
+                      >
+                        <TicketPercent size={16} />
+                        Nuevo Cupón
                       </Link>
                     </div>
                   </div>

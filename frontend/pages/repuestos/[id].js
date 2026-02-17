@@ -72,8 +72,10 @@ export default function RepuestoDetail() {
   }
 
   function saveToRecentlyViewed(product) {
+    if (!user) return
     try {
-      const recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]')
+      const storageKey = `recentlyViewed_${user.id}`
+      const recent = JSON.parse(localStorage.getItem(storageKey) || '[]')
       // Remove if already exists
       const filtered = recent.filter(p => p.id !== product.id)
       // Add to beginning
@@ -85,7 +87,7 @@ export default function RepuestoDetail() {
         brand: product.brand,
         model: product.model
       }, ...filtered].slice(0, 10) // Keep only last 10
-      localStorage.setItem('recentlyViewed', JSON.stringify(updated))
+      localStorage.setItem(storageKey, JSON.stringify(updated))
     } catch (err) {
       console.error('Error saving to recently viewed:', err)
     }

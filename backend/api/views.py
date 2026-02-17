@@ -183,6 +183,11 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     search_fields = ('name', 'description')
     ordering_fields = ('name',)
 
+    def get_permissions(self):
+        if self.action in {'create', 'update', 'partial_update', 'destroy'}:
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticatedOrReadOnly()]
+
 
 class RepuestoViewSet(viewsets.ModelViewSet):
     queryset = Repuesto.objects.select_related('category').all()
@@ -223,6 +228,15 @@ class RepuestoViewSet(viewsets.ModelViewSet):
         if self.action in {'create', 'update', 'partial_update', 'destroy'}:
             return [permissions.IsAdminUser()]
         return [permissions.IsAuthenticatedOrReadOnly()]
+
+
+class CouponViewSet(viewsets.ModelViewSet):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = (permissions.IsAdminUser,)
+    filterset_fields = ('code', 'active')
+    search_fields = ('code',)
+    ordering_fields = ('valid_from', 'valid_to', 'discount_value')
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):

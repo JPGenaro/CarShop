@@ -2,20 +2,27 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Clock, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '../context/AuthContext'
 
 export default function RecentlyViewed() {
   const [recentProducts, setRecentProducts] = useState([])
+  const { user } = useAuth()
 
   useEffect(() => {
+    if (!user) {
+      setRecentProducts([])
+      return
+    }
     try {
-      const recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]')
+      const storageKey = `recentlyViewed_${user.id}`
+      const recent = JSON.parse(localStorage.getItem(storageKey) || '[]')
       setRecentProducts(recent)
     } catch (err) {
       console.error('Error loading recently viewed:', err)
     }
-  }, [])
+  }, [user])
 
-  if (recentProducts.length === 0) return null
+  if (!user || recentProducts.length === 0) return null
 
   return (
     <section className="container mx-auto py-12 px-4">
