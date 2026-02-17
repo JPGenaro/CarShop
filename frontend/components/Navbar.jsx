@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus, BarChart3, ChevronDown, Tag, TicketPercent } from 'lucide-react'
+import { ShoppingCart, Heart, GitCompare, Menu, X, User, LogOut, Settings, Home, PlusCircle, LogIn, UserPlus, BarChart3, ChevronDown, Tag, TicketPercent, Package } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useCompare } from '../context/CompareContext'
@@ -103,6 +103,14 @@ export default function Navbar() {
                       >
                         <BarChart3 size={16} />
                         Dashboard
+                      </Link>
+                      <Link
+                        href="/admin/pedidos"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-white/5 hover:text-orange-400 transition-colors"
+                        onClick={() => setAdminMenuOpen(false)}
+                      >
+                        <Package size={16} />
+                        Gestión de Pedidos
                       </Link>
                       <Link
                         href="/admin/assistant"
@@ -247,6 +255,10 @@ export default function Navbar() {
                 <Link href="/dashboard" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
                   <BarChart3 size={18} />
                   Dashboard
+                </Link>
+                <Link href="/admin/pedidos" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
+                  <Package size={18} />
+                  Gestión de Pedidos
                 </Link>
                 <Link href="/admin/assistant" className="flex items-center gap-2 py-2 text-gray-200 hover:text-orange-400" onClick={() => setMobileMenuOpen(false)}>
                   <Settings size={18} />

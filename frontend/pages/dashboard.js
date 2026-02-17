@@ -262,12 +262,164 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ANALYTICS AVANZADOS */}
+          {/* ANALYTICS AVANZADOS - con nuevas métricas */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-100 mb-6 flex items-center gap-2">
               <Target size={24} className="text-orange-400" />
-              Analytics Avanzados
+              Analytics Avanzados & Temporal
             </h2>
+
+            {/* Temporal Analysis - Current vs Previous Year */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Current Year */}
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 backdrop-blur-xl p-6">
+                <div className="text-lg font-semibold text-blue-400 mb-3">📊 Año Actual</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Ingresos</span>
+                    <span className="text-xl font-bold text-blue-400">${stats?.temporal?.current_year?.revenue?.toFixed(2) || '0.00'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Órdenes</span>
+                    <span className="text-xl font-bold text-blue-300">{stats?.temporal?.current_year?.orders || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-blue-500/20">
+                    <span className="text-gray-400">Promedio/Orden</span>
+                    <span className="font-semibold text-blue-300">
+                      ${(stats?.temporal?.current_year?.revenue / (stats?.temporal?.current_year?.orders || 1))?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Previous Year Comparison */}
+              <div className="rounded-2xl border border-gray-500/20 bg-gray-500/5 backdrop-blur-xl p-6">
+                <div className="text-lg font-semibold text-gray-300 mb-3">📈 Año Anterior (Comparativa)</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Ingresos</span>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-gray-300">${stats?.temporal?.previous_year?.revenue?.toFixed(2) || '0.00'}</div>
+                      {stats?.temporal?.current_year?.revenue && stats?.temporal?.previous_year?.revenue && (
+                        <div className={`text-xs font-semibold ${
+                          stats.temporal.current_year.revenue > stats.temporal.previous_year.revenue 
+                            ? 'text-green-400' 
+                            : 'text-red-400'
+                        }`}>
+                          {((stats.temporal.current_year.revenue - stats.temporal.previous_year.revenue) / (stats.temporal.previous_year.revenue || 1) * 100).toFixed(1)}%
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Órdenes</span>
+                    <span className="text-xl font-bold text-gray-300">{stats?.temporal?.previous_year?.orders || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-500/20">
+                    <span className="text-gray-400">Promedio/Orden</span>
+                    <span className="font-semibold text-gray-300">
+                      ${(stats?.temporal?.previous_year?.revenue / (stats?.temporal?.previous_year?.orders || 1))?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Monthly Stats Chart */}
+            {stats?.temporal?.monthly_stats && stats.temporal.monthly_stats.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-100 mb-4">📅 Análisis Mensual (Últimos 12 Meses)</h3>
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={stats.temporal.monthly_stats}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="month" stroke="#888" tick={{ fontSize: 10 }} />
+                    <YAxis stroke="#888" yAxisId="left" />
+                    <YAxis stroke="#888" yAxisId="right" orientation="right" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f1f1f', border: '1px solid #333', borderRadius: '8px' }}
+                      labelStyle={{ color: '#888' }}
+                    />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="revenue" fill="#f97316" name="Ingresos ($)" />
+                    <Bar yAxisId="right" dataKey="orders" fill="#3b82f6" name="Órdenes" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Coupon Statistics */}
+            {stats?.coupons && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 backdrop-blur-xl p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-sm">Cupones Usados</span>
+                    <span className="text-2xl">🎟️</span>
+                  </div>
+                  <div className="text-3xl font-bold text-purple-400">
+                    {stats.coupons.total_coupons_used || 0}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {((stats.coupons.total_coupons_used / (stats?.summary?.total_orders || 1)) * 100).toFixed(1)}% de las órdenes
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 backdrop-blur-xl p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-sm">Descuentos Otorgados</span>
+                    <span className="text-2xl">💰</span>
+                  </div>
+                  <div className="text-3xl font-bold text-pink-400">
+                    ${stats.coupons.total_discount_given?.toFixed(2) || '0.00'}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {((stats.coupons.total_discount_given / (stats?.revenue?.total || 1)) * 100).toFixed(1)}% de ingresos
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 backdrop-blur-xl p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-sm">Promedio/Cupón Usado</span>
+                    <span className="text-2xl">📊</span>
+                  </div>
+                  <div className="text-3xl font-bold text-teal-400">
+                    ${(stats.coupons.total_discount_given / (stats.coupons.total_coupons_used || 1))?.toFixed(2) || '0.00'}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Ahorro promedio por cliente
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Top Coupons Used */}
+            {stats?.coupons?.coupon_usage_stats && stats.coupons.coupon_usage_stats.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-100 mb-4">🎟️ Cupones Más Usados</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {stats.coupons.coupon_usage_stats.map((coupon, idx) => (
+                    <div key={idx} className="border border-white/10 rounded-lg p-4 bg-black/20">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="font-semibold text-gray-200 text-lg">{coupon.coupon_code}</div>
+                          <div className="text-xs text-gray-500 mt-1">Usos: {coupon.times_used}</div>
+                        </div>
+                        <span className="text-2xl">#{idx + 1}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                        <div>
+                          <div className="text-xs text-gray-500">Descuento Total</div>
+                          <div className="font-bold text-green-400">${coupon.total_discount?.toFixed(2) || '0.00'}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">Ingresos Generados</div>
+                          <div className="font-bold text-orange-400">${coupon.total_revenue?.toFixed(2) || '0.00'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Metrics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

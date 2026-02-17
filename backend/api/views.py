@@ -3,6 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django_filters import rest_framework as filters
 import re
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -31,6 +32,23 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
 
+class OrderFilterSet(filters.FilterSet):
+    search = filters.CharFilter(method='search_filter')
+    
+    class Meta:
+        model = Order
+        fields = ['status']
+    
+    def search_filter(self, queryset, name, value):
+        """Search by user name, email, order id, or address"""
+        return queryset.filter(
+            Q(user__username__icontains=value) |
+            Q(user__email__icontains=value) |
+            Q(id=value) if value.isdigit() else Q() |
+            Q(address_line1__icontains=value)
+        )
+
+
 class MeView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -51,6 +69,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = OrderFilterSet
 
     def get_queryset(self):
         # Admins can see all orders, users only see their own
@@ -443,6 +463,45 @@ class DashboardStatsView(APIView):
             revenue=Sum(F('price') * F('qty'))
         ).order_by('-revenue')[:10]
 
+        # --- ANÁLISIS DE CUPONES ---
+        total_coupons_used = Order.objects.exclude(coupon_code__isnull=True).exclude(coupon_code='').count()
+        coupon_usage_stats = Order.objects.exclude(coupon_code__isnull=True).exclude(coupon_code='').values('coupon_code').annotate(
+            times_used=Count('id'),
+            total_discount=Sum('discount_amount'),
+            total_revenue=Sum('total')
+        ).order_by('-times_used')[:10]
+        total_discount_given = Order.objects.aggregate(total=Sum('discount_amount'))['total'] or 0
+
+        # --- ANÁLISIS MENSUAL Y ANUAL ---
+        # Últimos 12 meses
+        twelve_months_ago = timezone.now() - timedelta(days=365)
+        monthly_stats = []
+        for i in range(12):
+            month_date = timezone.now() - timedelta(days=(11-i)*30)
+            month_start = month_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
+            
+            month_orders = Order.objects.filter(created_at__gte=month_start, created_at__lte=month_end)
+            month_revenue = month_orders.aggregate(total=Sum('total'))['total'] or 0
+            month_orders_count = month_orders.count()
+            
+            monthly_stats.append({
+                'month': month_start.strftime('%Y-%m'),
+                'revenue': float(month_revenue),
+                'orders': month_orders_count,
+                'avg_order': float(month_revenue / month_orders_count) if month_orders_count > 0 else 0
+            })
+
+        # Annual comparison
+        current_year_start = timezone.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_year_revenue = Order.objects.filter(created_at__gte=current_year_start).aggregate(total=Sum('total'))['total'] or 0
+        current_year_orders = Order.objects.filter(created_at__gte=current_year_start).count()
+
+        previous_year_start = current_year_start - timedelta(days=365)
+        previous_year_end = current_year_start - timedelta(seconds=1)
+        previous_year_revenue = Order.objects.filter(created_at__gte=previous_year_start, created_at__lte=previous_year_end).aggregate(total=Sum('total'))['total'] or 0
+        previous_year_orders = Order.objects.filter(created_at__gte=previous_year_start, created_at__lte=previous_year_end).count()
+
         return Response({
             'revenue': {
                 'total': float(total_revenue),
@@ -472,6 +531,22 @@ class DashboardStatsView(APIView):
                 'most_favorited': list(most_favorited_products),
                 'price_distribution': price_ranges,
                 'category_sales': list(category_sales),
+            },
+            'coupons': {
+                'total_coupons_used': total_coupons_used,
+                'coupon_usage_stats': list(coupon_usage_stats),
+                'total_discount_given': float(total_discount_given),
+            },
+            'temporal': {
+                'monthly_stats': monthly_stats,
+                'current_year': {
+                    'revenue': float(current_year_revenue),
+                    'orders': current_year_orders,
+                },
+                'previous_year': {
+                    'revenue': float(previous_year_revenue),
+                    'orders': previous_year_orders,
+                }
             }
         })
 
