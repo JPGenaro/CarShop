@@ -10,6 +10,8 @@ import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { fetchWithAuth } from '../../lib/auth'
+import ConfirmModal from '../../components/ConfirmModal'
+import SuccessModal from '../../components/SuccessModal'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
@@ -26,6 +28,9 @@ export default function RepuestoDetail() {
   const [selectedImage, setSelectedImage] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showShareMenu, setShowShareMenu] = useState(false)
+  const [showDeleteProductModal, setShowDeleteProductModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
   const { addItem } = useCart()
   const { user } = useAuth()
   const { showToast } = useToast()
@@ -175,6 +180,35 @@ export default function RepuestoDetail() {
     } catch (e) {
       console.error(e)
       showToast('No se pudo eliminar', 'error')
+    }
+  }
+
+  async function confirmDeleteProduct() {
+    try {
+      const res = await fetchWithAuth(`/repuestos/${id}/`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        // Remove from recently viewed
+        if (user) {
+          const storageKey = `recentlyViewed_${user.id}`
+          const recent = JSON.parse(localStorage.getItem(storageKey) || '[]')
+          const filtered = recent.filter(p => p.id !== parseInt(id))
+          localStorage.setItem(storageKey, JSON.stringify(filtered))
+        }
+        
+        setSuccessMessage('¡Producto eliminado exitosamente!')
+        setShowSuccessModal(true)
+        setTimeout(() => router.push('/'), 2000)
+      } else {
+        const err = await res.json()
+        showToast(err.detail || 'No se pudo eliminar el producto', 'error')
+        setShowDeleteProductModal(false)
+      }
+    } catch (e) {
+      console.error(e)
+      showToast('Error al eliminar el producto', 'error')
+      setShowDeleteProductModal(false)
     }
   }
 
@@ -412,10 +446,19 @@ export default function RepuestoDetail() {
                   </div>
                   
                   {user?.is_staff && (
-                    <Link href={`/repuestos/${item.id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-md border border-orange-400/50 text-orange-400 hover:bg-orange-400/10 transition-colors">
-                      <Edit size={18} />
-                      Editar producto
-                    </Link>
+                    <>
+                      <Link href={`/repuestos/${item.id}/edit`} className="flex items-center gap-2 px-4 py-2 rounded-md border border-orange-400/50 text-orange-400 hover:bg-orange-400/10 transition-colors">
+                        <Edit size={18} />
+                        Editar producto
+                      </Link>
+                      <button
+                        onClick={() => setShowDeleteProductModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-md border border-red-400/50 text-red-400 hover:bg-red-400/10 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                        Eliminar
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -521,6 +564,25 @@ export default function RepuestoDetail() {
                 </div>
               )}
             </div>
+
+            {/* Delete Product Modal */}
+            <ConfirmModal
+              isOpen={showDeleteProductModal}
+              title="Eliminar producto"
+              message={`¿Estás seguro de que quieres eliminar "${item.name}"? Esta acción no se puede deshacer.`}
+              isDangerous={true}
+              onConfirm={confirmDeleteProduct}
+              onCancel={() => setShowDeleteProductModal(false)}
+              confirmText="Eliminar"
+              cancelText="Cancelar"
+            />
+
+            {/* Success Modal */}
+            <SuccessModal
+              isOpen={showSuccessModal}
+              title="¡Éxito!"
+              message={successMessage}
+            />
           </>
         ) : (
           <p className="text-gray-400">No encontrado</p>

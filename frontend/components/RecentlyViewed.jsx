@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Clock, Eye } from 'lucide-react'
+import { Clock, Eye, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 
@@ -22,13 +22,30 @@ export default function RecentlyViewed() {
     }
   }, [user])
 
+  function clearRecentlyViewed() {
+    if (!user) return
+    const storageKey = `recentlyViewed_${user.id}`
+    localStorage.removeItem(storageKey)
+    setRecentProducts([])
+  }
+
   if (!user || recentProducts.length === 0) return null
 
   return (
     <section className="container mx-auto py-12 px-4">
-      <div className="flex items-center gap-3 mb-6">
-        <Clock className="text-orange-400" size={22} />
-        <h2 className="text-2xl font-bold">Vistos Recientemente</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Clock className="text-orange-400" size={22} />
+          <h2 className="text-2xl font-bold">Vistos Recientemente</h2>
+        </div>
+        <button
+          onClick={clearRecentlyViewed}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-400/30 text-red-400 hover:bg-red-400/10 transition-colors text-sm"
+          title="Limpiar historial"
+        >
+          <Trash2 size={16} />
+          Limpiar
+        </button>
       </div>
 
       <div className="relative">

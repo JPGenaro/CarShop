@@ -159,6 +159,15 @@ export default function EditRepuesto() {
     try {
       setSaving(true)
       await fetchWithAuth(`/repuestos/${id}/`, { method: 'DELETE' })
+      
+      // Remove from recently viewed
+      if (user) {
+        const storageKey = `recentlyViewed_${user.id}`
+        const recent = JSON.parse(localStorage.getItem(storageKey) || '[]')
+        const filtered = recent.filter(p => p.id !== parseInt(id))
+        localStorage.setItem(storageKey, JSON.stringify(filtered))
+      }
+      
       setShowDeleteProductModal(false)
       setSuccessMessage('¡Producto eliminado exitosamente!')
       setShowSuccessModal(true)

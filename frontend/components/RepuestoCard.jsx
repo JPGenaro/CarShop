@@ -9,6 +9,8 @@ import { useCart } from '../context/CartContext'
 import { useFavorites } from '../context/FavoritesContext'
 import { useCompare } from '../context/CompareContext'
 import { useToast } from '../context/ToastContext'
+import ConfirmModal from './ConfirmModal'
+import SuccessModal from './SuccessModal'
 
 function truncate(text, n = 120) {
   if (!text) return ''
@@ -28,6 +30,9 @@ export default function RepuestoCard({ item }) {
   // Carousel state
   const allImages = [item.image, ...(item.imagenes || []).map(img => img.image)].filter(Boolean)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
     if (allImages.length <= 1) return
@@ -37,14 +42,25 @@ export default function RepuestoCard({ item }) {
     return () => clearInterval(interval)
   }, [allImages.length])
 
-  async function handleDelete() {
-    if (!confirm('¿Eliminar este repuesto?')) return
+  async function confirmDelete() {
     try {
       const res = await fetchWithAuth(`/repuestos/${item.id}/`, { method: 'DELETE' })
       if (!res.ok) throw new Error('delete failed')
-      router.reload()
+      
+      // Remove from recently viewed
+      if (user) {
+        const storageKey = `recentlyViewed_${user.id}`
+        const recent = JSON.parse(localStorage.getItem(storageKey) || '[]')
+        const filtered = recent.filter(p => p.id !== item.id)
+        localStorage.setItem(storageKey, JSON.stringify(filtered))
+      }
+      
+      setSuccessMessage('¡Producto eliminado exitosamente!')
+      setShowSuccessModal(true)
+      setTimeout(() => router.reload(), 2000)
     } catch (e) {
       showToast('No se pudo eliminar', 'error')
+      setShowDeleteModal(false)
     }
   }
 
@@ -166,11 +182,29 @@ export default function RepuestoCard({ item }) {
           {user?.is_staff && (
             <>
               <Link href={`/repuestos/${item.id}/edit`} className="text-sm text-gray-200 px-2 py-1 border border-white/20 rounded hover:border-orange-400/60">Editar</Link>
-              <button onClick={handleDelete} className="text-sm text-red-400 px-2 py-1 hover:text-red-300">Borrar</button>
+              <button onClick={() => setShowDeleteModal(true)} className="text-sm text-red-400 px-2 py-1 hover:text-red-300">Borrar</button>
             </>
           )}
         </div>
       </div>
-    </motion.div>
+
+      {/* Delete Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Eliminar producto"
+        message={`¿Estás seguro de que quieres eliminar "${item.name}"? Esta acción no se puede deshacer.`}
+        isDangerous={true}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        title="¡Éxito!"
+        message={successMessage}
+      />    </motion.div>
   )
 }
