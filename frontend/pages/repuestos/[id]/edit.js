@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { Upload, X, Image as ImageIcon } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Trash2 } from 'lucide-react'
 import RequireAuth from '../../../components/RequireAuth'
 import Navbar from '../../../components/Navbar'
 import Footer from '../../../components/Footer'
+import ConfirmModal from '../../../components/ConfirmModal'
+import SuccessModal from '../../../components/SuccessModal'
 import { SkeletonDetail } from '../../../components/Skeleton'
 import { fetchWithAuth } from '../../../lib/auth'
 import { useAuth } from '../../../context/AuthContext'
@@ -31,6 +33,11 @@ export default function EditRepuesto() {
   const [additionalImages, setAdditionalImages] = useState([])
   const [categories, setCategories] = useState([])
   const [error, setError] = useState(null)
+  const [showDeleteImageModal, setShowDeleteImageModal] = useState(false)
+  const [imageToDelete, setImageToDelete] = useState(null)
+  const [showDeleteProductModal, setShowDeleteProductModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   function onlyDigits(value) {
     return value.replace(/\D/g, '')
@@ -125,12 +132,44 @@ export default function EditRepuesto() {
   }
 
   async function deleteImage(imageId) {
-    if (!confirm('¿Eliminar esta imagen?')) return
+    setImageToDelete(imageId)
+    setShowDeleteImageModal(true)
+  }
+
+  async function confirmDeleteImage() {
     try {
-      await fetchWithAuth(`/imagenes/${imageId}/`, { method: 'DELETE' })
-      setExistingImages(existingImages.filter(img => img.id !== imageId))
+      await fetchWithAuth(`/imagenes/${imageToDelete}/`, { method: 'DELETE' })
+      setExistingImages(existingImages.filter(img => img.id !== imageToDelete))
+      setShowDeleteImageModal(false)
+      setImageToDelete(null)
+      setSuccessMessage('Imagen eliminada exitosamente')
+      setShowSuccessModal(true)
+      setTimeout(() => setShowSuccessModal(false), 2000)
     } catch (e) {
       console.error('Error eliminando imagen', e)
+      setError('No se pudo eliminar la imagen')
+    }
+  }
+
+  async function deleteProduct() {
+    setShowDeleteProductModal(true)
+  }
+
+  async function confirmDeleteProduct() {
+    try {
+      setSaving(true)
+      await fetchWithAuth(`/repuestos/${id}/`, { method: 'DELETE' })
+      setShowDeleteProductModal(false)
+      setSuccessMessage('¡Producto eliminado exitosamente!')
+      setShowSuccessModal(true)
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+    } catch (e) {
+      console.error('Error eliminando producto', e)
+      setError('No se pudo eliminar el producto')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -296,10 +335,50 @@ export default function EditRepuesto() {
                   {saving ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
                 <button type="button" onClick={() => router.push(`/repuestos/${id}`)} className="px-6 py-3 border border-white/10 rounded-lg text-gray-300 hover:border-white/30 transition-colors">Cancelar</button>
+                <button 
+                  type="button" 
+                  onClick={deleteProduct}
+                  disabled={saving}
+                  className="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 size={18} />
+                  Eliminar Producto
+                </button>
               </div>
             </form>
           </div>
           )}
+
+          {/* Modales de confirmación */}
+          <ConfirmModal
+            isOpen={showDeleteImageModal}
+            title="Eliminar Imagen"
+            message="¿Estás seguro de que deseas eliminar esta imagen? Esta acción no se puede deshacer."
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+            isDangerous={true}
+            onConfirm={confirmDeleteImage}
+            onCancel={() => {
+              setShowDeleteImageModal(false)
+              setImageToDelete(null)
+            }}
+          />
+
+          <ConfirmModal
+            isOpen={showDeleteProductModal}
+            title="Eliminar Producto"
+            message="¿Estás seguro de que deseas eliminar este producto completamente? Esta acción no se puede deshacer."
+            confirmText="Eliminar Producto"
+            cancelText="Cancelar"
+            isDangerous={true}
+            onConfirm={confirmDeleteProduct}
+            onCancel={() => setShowDeleteProductModal(false)}
+          />
+
+          <SuccessModal
+            isOpen={showSuccessModal}
+            message={successMessage}
+          />
         </main>
         <Footer />
       </div>

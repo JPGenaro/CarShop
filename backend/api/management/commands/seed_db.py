@@ -18,15 +18,21 @@ class Command(BaseCommand):
             Categoria.objects.all().delete()
 
         categories = {
-            'Frenos': 'Componentes de frenado de alto rendimiento.',
-            'Motor': 'Piezas críticas del tren motriz y mantenimiento.',
-            'Suspensión': 'Amortiguación y estabilidad del vehículo.',
-            'Iluminación': 'Ópticas, lámparas y señalización.',
-            'Transmisión': 'Componentes para caja y embrague.',
-            'Electricidad': 'Arranque, carga y sensores.',
-            'Carrocería': 'Partes exteriores y detalles estéticos.',
-            'Aceites y Fluidos': 'Lubricantes, refrigerantes y fluidos.',
-            'Accesorios': 'Complementos funcionales y estéticos.',
+            'Frenos': 'Componentes de frenado: discos, pastillas, cilindros maestros y esclavos.',
+            'Motor': 'Piezas críticas del tren motriz: cilindros, válvulas, juntas, turbo, intercooler.',
+            'Suspensión': 'Amortiguación y estabilidad: amortiguadores, resortes, barras estabilizadoras, bujes.',
+            'Iluminación': 'Ópticas, lámparas y señalización: faros, pilotos, luces de marcha atrás.',
+            'Transmisión': 'Componentes para caja: sincronizadores, embrague, platós, horquillas.',
+            'Electricidad': 'Arranque, carga y sensores: alternadores, motores de arranque, baterías.',
+            'Carrocería': 'Partes exteriores: guardabarros, puertas, capot, maleta, espejos.',
+            'Escape': 'Sistema de escape: catalizadores, silenciadores, tubos, colectores.',
+            'Aceites y Fluidos': 'Lubricantes, refrigerantes, líquido de frenos, anticongelante.',
+            'Refrigeración': 'Radiadores, ventiladores, termostatos, mangueras de agua.',
+            'Aire': 'Filtros de aire, turbos, entradas de aire, sistemas de admisión.',
+            'Ruedas y Neumáticos': 'Llantas, neumáticos, centradores, válvulas, rines.',
+            'Dirección': 'Cremalleras, bomba hidráulica, rótulas, terminales de dirección.',
+            'Interior': 'Tapizados, alfombras, tapicería, volantes, cambios de velocidad.',
+            'Accesorios': 'Kits aerodinámicos, spoilers, bulbos LED, pegatinas, protecciones.',
         }
 
         created_categories = {}
