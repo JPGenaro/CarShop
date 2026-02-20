@@ -34,6 +34,8 @@ export default function Home() {
     return value.replace(/\D/g, '')
   }
 
+  const PAGE_SIZE = 12
+
   useEffect(() => {
     // fetch categories for the select
     fetch(`${API_BASE}/categorias/`)
@@ -62,10 +64,19 @@ export default function Home() {
 
     fetch(`${API_BASE}/repuestos/?${params.toString()}`)
       .then(res => {
+        if (res.status === 404) {
+          const lastPage = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE))
+          if (page > lastPage) {
+            setPage(lastPage)
+            return null
+          }
+          throw new Error('Error fetching repuestos')
+        }
         if (!res.ok) throw new Error('Error fetching repuestos')
         return res.json()
       })
       .then(data => {
+        if (!data) return
         const results = data.results || data
         setItems(results)
         setCount(data.count || (Array.isArray(data) ? data.length : 0))

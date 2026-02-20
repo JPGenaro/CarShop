@@ -5,9 +5,11 @@ from .models import Categoria, Repuesto, UserProfile, Order, OrderItem, Notifica
 
 
 class ImagenRepuestoSerializer(serializers.ModelSerializer):
+    repuesto = serializers.PrimaryKeyRelatedField(queryset=Repuesto.objects.all())
+
     class Meta:
         model = ImagenRepuesto
-        fields = ('id', 'image', 'orden', 'created_at')
+        fields = ('id', 'repuesto', 'image', 'orden', 'created_at')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
