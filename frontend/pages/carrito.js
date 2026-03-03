@@ -57,11 +57,10 @@ export default function CartPage() {
     setCoupon(null)
     
     try {
-      const res = await fetch(`${API_BASE}/coupons/validate/`, {
+      const res = await fetchWithAuth('/coupons/validate/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ code: couponCode.trim().toUpperCase() }),
       })

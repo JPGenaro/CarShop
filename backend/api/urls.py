@@ -13,11 +13,11 @@ router.register(r'imagenes', ImagenRepuestoViewSet, basename='imagenes')
 router.register(r'coupons', CouponViewSet, basename='coupons')
 
 urlpatterns = [
-    path('', include(router.urls)),
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('auth/me/', MeView.as_view(), name='auth_me'),
     path('auth/profile/', ProfileView.as_view(), name='auth_profile'),
     path('admin/assistant/', AdminAssistantView.as_view(), name='admin_assistant'),
     path('admin/dashboard/', DashboardStatsView.as_view(), name='dashboard_stats'),
     path('coupons/validate/', ValidateCouponView.as_view(), name='validate_coupon'),
+    path('', include(router.urls)),
 ]
