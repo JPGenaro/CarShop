@@ -4,7 +4,6 @@ import { Lock, Mail, User } from 'lucide-react'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import LoadingScreen from '../components/LoadingScreen'
 import { register } from '../lib/auth'
 import { useAuth } from '../context/AuthContext'
 
@@ -23,7 +22,6 @@ export default function RegisterPage() {
   const [postalCode, setPostalCode] = useState('')
   const [error, setError] = useState(null)
   const [fieldErrors, setFieldErrors] = useState({})
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { login } = useAuth()
 
@@ -87,7 +85,6 @@ export default function RegisterPage() {
     e.preventDefault()
     setError(null)
     if (!validate()) return
-    setIsLoading(true)
     try {
       await register({
         username,
@@ -123,12 +120,9 @@ export default function RegisterPage() {
         if (err.postal_code) mapped.postalCode = err.postal_code?.[0]
         setFieldErrors(prev => ({ ...prev, ...mapped }))
       }
-    } finally {
-      setIsLoading(false)
     }
   }
-LoadingScreen show={isLoading} message="Creando tu cuenta..." />
-      <
+
   return (
     <div className="min-h-screen flex flex-col bg-[#121212]">
       <Navbar />
@@ -146,8 +140,7 @@ LoadingScreen show={isLoading} message="Creando tu cuenta..." />
               <User size={18} className="text-orange-400" />
               <input
                 value={username}
-                disabled={isLoading}
-                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50
+                onChange={e => setUsername(e.target.value)}
                 className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
                 placeholder="Usuario"
                 maxLength={30}
@@ -182,8 +175,7 @@ LoadingScreen show={isLoading} message="Creando tu cuenta..." />
               <input
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                disabled={isLoading}
-                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50"
+                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
                 placeholder="Email"
                 maxLength={120}
               />
@@ -194,8 +186,7 @@ LoadingScreen show={isLoading} message="Creando tu cuenta..." />
                 <input
                   value={dni}
                   onChange={e => setDni(onlyDigits(e.target.value))}
-                  disabled={isLoading}
-                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50"
+                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
                   placeholder="DNI"
                   inputMode="numeric"
                   pattern="\d*"
@@ -205,8 +196,7 @@ LoadingScreen show={isLoading} message="Creando tu cuenta..." />
               <div className={`rounded-xl border ${fieldErrors.phone ? 'border-red-500/60' : 'border-white/10'} bg-black/40 px-4 py-3 flex items-center gap-3`}>
                 <input
                   value={phone}
-                  disabled={isLoading}
-                  className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50
+                  onChange={e => setPhone(onlyDigits(e.target.value))}
                   className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
                   placeholder="Teléfono"
                   inputMode="numeric"
@@ -223,8 +213,7 @@ LoadingScreen show={isLoading} message="Creando tu cuenta..." />
               <input
                 type="password"
                 value={password}
-                disabled={isLoading}
-                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50
+                onChange={e => setPassword(e.target.value)}
                 className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
                 placeholder="Contraseña"
                 maxLength={128}
@@ -234,8 +223,7 @@ LoadingScreen show={isLoading} message="Creando tu cuenta..." />
             <div className={`rounded-xl border ${fieldErrors.address1 ? 'border-red-500/60' : 'border-white/10'} bg-black/40 px-4 py-3 flex items-center gap-3`}>
               <input
                 value={address1}
-                disabled={isLoading}
-                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50
+                onChange={e => setAddress1(e.target.value)}
                 className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
                 placeholder="Calle y número"
                 maxLength={200}
@@ -298,12 +286,9 @@ LoadingScreen show={isLoading} message="Creando tu cuenta..." />
                 disabled
                 className="bg-transparent outline-none text-gray-400 w-full"
                 placeholder="País"
-              /> text-center">{error}</p>}
-            <button 
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white px-4 py-2 rounded-md shadow-lg shadow-red-500/20 hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              {isLoading ? 'Creando cuenta...' : 'Registrar'}p className="text-red-400 text-sm">{error}</p>}
+              />
+            </div>
+            {error && <p className="text-red-400 text-sm">{error}</p>}
             <button className="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white px-4 py-2 rounded-md shadow-lg shadow-red-500/20 hover:opacity-95">
               Registrar
             </button>
