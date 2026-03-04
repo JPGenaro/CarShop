@@ -1,13 +1,24 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-for-production')
+# Security: SECRET_KEY must be set in environment
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is required")
 
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['carshop-wg0g.onrender.com', 'localhost', '127.0.0.1', '*']
+# Restrict ALLOWED_HOSTS in production
+ALLOWED_HOSTS = [
+    'carshop-wg0g.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
+if DEBUG:
+    ALLOWED_HOSTS.append('*')
 
 INSTALLED_APPS = [
     'grappelli',
@@ -88,18 +99,33 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# WhiteNoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS (dev)
+# ==================== CORS Configuration ====================
 CORS_ALLOWED_ORIGINS = [
     "https://car-shop-dusky.vercel.app",
 ]
-# Para desarrollo, permitir todos los orígenes (descomenta en producción si es necesario)
-# CORS_ALLOW_ALL_ORIGINS = True
+if DEBUG:
+    CORS_ALLOWED_ORIGINS.extend([
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
+    ])
 
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# ==================== REST Framework Configuration ====================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -114,10 +140,48 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.SafePageNumberPagination',
     'PAGE_SIZE': 12,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+    }
 }
 
-from datetime import timedelta
+# ==================== JWT Configuration ====================
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
 }
+
+# ==================== Security Settings ====================
+# HTTPS and SSL
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Session Security
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+
+# CSRF Security
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+
+# Security Headers
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_SECURITY_POLICY = False  # Configure based on your needs
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# HSTS (HTTP Strict Transport Security)
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000  # 1 year in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
