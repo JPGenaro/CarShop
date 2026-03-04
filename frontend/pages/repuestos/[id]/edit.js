@@ -10,7 +10,7 @@ import { SkeletonDetail } from '../../../components/Skeleton'
 import { fetchWithAuth } from '../../../lib/auth'
 import { useAuth } from '../../../context/AuthContext'
 
-const API_BASE = process.env.NEXT_PUBLIC_VITE_API_URL || 'http://127.0.0.1:8000/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
 export default function EditRepuesto() {
   const router = useRouter()

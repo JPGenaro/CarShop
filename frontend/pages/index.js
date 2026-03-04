@@ -9,7 +9,7 @@ import Pagination from '../components/Pagination'
 import { SkeletonCard } from '../components/Skeleton'
 import RecentlyViewed from '../components/RecentlyViewed'
 
-const API_BASE = process.env.NEXT_PUBLIC_VITE_API_URL || 'http://127.0.0.1:8000/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
 export default function Home() {
   const [items, setItems] = useState([])
