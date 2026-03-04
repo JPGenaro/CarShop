@@ -7,7 +7,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-for-production')
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['carshop-wg0g.onrender.com', 'localhost', '127.0.0.1', '*']
 
 INSTALLED_APPS = [
     'grappelli',
@@ -97,6 +97,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "https://car-shop-dusky.vercel.app",
 ]
+# Para desarrollo, permitir todos los orígenes (descomenta en producción si es necesario)
+# CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
