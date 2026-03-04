@@ -13,7 +13,7 @@ import { fetchWithAuth } from '../../lib/auth'
 import ConfirmModal from '../../components/ConfirmModal'
 import SuccessModal from '../../components/SuccessModal'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-wg0g.onrender.com/api'
 
 export default function RepuestoDetail() {
   const router = useRouter()
