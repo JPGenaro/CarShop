@@ -4,29 +4,35 @@ import { Lock, User } from 'lucide-react'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import LoadingScreen from '../components/LoadingScreen'
 import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { login } = useAuth()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
+    setIsLoading(true)
     try {
       await login(username, password)
       router.push('/')
     } catch (err) {
       console.error(err)
       setError('Credenciales incorrectas')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#121212]">
+      <LoadingScreen show={isLoading} message="Verificando credenciales..." />
       <Navbar />
       <main className="flex-1 flex items-center justify-center py-14 px-4">
         <motion.div
@@ -43,7 +49,8 @@ export default function LoginPage() {
               <input
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
+                disabled={isLoading}
+                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50"
                 placeholder="Usuario"
               />
             </div>
@@ -53,13 +60,17 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full"
+                disabled={isLoading}
+                className="bg-transparent outline-none text-gray-100 placeholder:text-gray-500 w-full disabled:opacity-50"
                 placeholder="Contraseña"
               />
             </div>
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button className="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white px-4 py-2 rounded-md shadow-lg shadow-red-500/20 hover:opacity-95">
-              Entrar
+            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+            <button 
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-red-600 to-orange-500 text-white px-4 py-2 rounded-md shadow-lg shadow-red-500/20 hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {isLoading ? 'Ingresando...' : 'Entrar'}
             </button>
           </form>
         </motion.div>
