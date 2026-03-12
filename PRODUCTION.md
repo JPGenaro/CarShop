@@ -12,6 +12,11 @@
   - `SECRET_KEY` = [tu clave generada]
   - `DEBUG` = False
   - `FRONTEND_URL` = https://car-shop-dusky.vercel.app
+  - `AWS_ACCESS_KEY_ID` = [tu access key]
+  - `AWS_SECRET_ACCESS_KEY` = [tu secret key]
+  - `AWS_STORAGE_BUCKET_NAME` = [tu bucket para media]
+  - `AWS_S3_REGION_NAME` = [tu región, ej. us-east-1]
+  - `AWS_S3_CUSTOM_DOMAIN` = [opcional, CDN o dominio del bucket]
 
 - [ ] Verificar ALLOWED_HOSTS: ✅ Ya está configurado
 
@@ -22,6 +27,26 @@
 ### Base de Datos
 **Actual:** SQLite (solo desarrollo)
 **Recomendado para producción:**
+```
+
+### Archivos media / imágenes
+**Problema:** en Render, el filesystem local no es persistente. Las imágenes subidas a `media/` se pierden.
+
+**Solución aplicada:** el backend ahora usa S3 para `ImageField` cuando detecta estas variables:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_STORAGE_BUCKET_NAME`
+- `AWS_S3_REGION_NAME`
+
+Si están configuradas, todas las imágenes nuevas se guardan en el bucket bajo `media/`.
+Si no están configuradas, en local sigue usando la carpeta `media/` normal.
+
+**Ojo:** el bucket debe permitir lectura pública de los archivos de `media/` o exponerlos mediante CDN/custom domain. Si no, la imagen se sube pero el frontend verá `403` al intentar mostrarla.
+
+Para copiar imágenes locales ya existentes al bucket una vez configurado S3:
+
+```bash
+python manage.py sync_media_to_storage
 ```
 1. Cambiar a PostgreSQL
 2. En settings.py:

@@ -25,6 +25,24 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+Archivos e imágenes
+
+- En desarrollo local, las imágenes se guardan en `backend/media/`.
+- En producción, el backend está preparado para guardar imágenes en S3 si defines estas variables de entorno:
+	- `AWS_ACCESS_KEY_ID`
+	- `AWS_SECRET_ACCESS_KEY`
+	- `AWS_STORAGE_BUCKET_NAME`
+	- `AWS_S3_REGION_NAME`
+	- `AWS_S3_CUSTOM_DOMAIN` (opcional)
+
+Si esas variables no existen, Django seguirá usando almacenamiento local.
+
+Para migrar imágenes locales ya existentes al storage remoto configurado:
+
+```bash
+python manage.py sync_media_to_storage
+```
+
 Endpoints de autenticación:
 - `POST /api/auth/register/` : registro de usuario
 - `POST /api/auth/token/` : obtener pair JWT (access, refresh)

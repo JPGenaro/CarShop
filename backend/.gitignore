@@ -11,12 +11,17 @@ venv/
 .venv/
 env/
 .env
+.env.*
+.env*
 *.sqlite3
 db.sqlite3
 
 # Django
 staticfiles/
 media/
+
+# Local helpers
+runserver.sh
 
 # Editor/IDE
 .vscode/

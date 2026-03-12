@@ -13,7 +13,7 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Restrict ALLOWED_HOSTS in production
 ALLOWED_HOSTS = [
-    'carshop-wg0g.onrender.com',
+    'carshop-9cfj.onrender.com',
     'localhost',
     '127.0.0.1',
 ]
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
+    'storages',
     'api',
 ]
 
@@ -99,7 +100,43 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+USE_S3_MEDIA = all([
+    os.environ.get('AWS_ACCESS_KEY_ID'),
+    os.environ.get('AWS_SECRET_ACCESS_KEY'),
+    os.environ.get('AWS_STORAGE_BUCKET_NAME'),
+    os.environ.get('AWS_S3_REGION_NAME'),
+])
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
+if USE_S3_MEDIA:
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
+    AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_S3_CUSTOM_DOMAIN')
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+
+    STORAGES['default'] = {
+        'BACKEND': 'backend_project.storage_backends.MediaStorage',
+    }
+    MEDIA_URL = (
+        f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
+        if AWS_S3_CUSTOM_DOMAIN
+        else f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
+    )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
