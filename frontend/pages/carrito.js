@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { fetchWithAuth } from '../lib/auth'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-wg0g.onrender.com/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-9cfj.onrender.com/api'
 
 export default function CartPage() {
   const { items, updateQty, removeItem, clear, summary } = useCart()

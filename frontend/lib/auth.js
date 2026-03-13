@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-wg0g.onrender.com/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-9cfj.onrender.com/api'
 
 export function saveTokens({ access, refresh }) {
   if (access) localStorage.setItem('access', access)

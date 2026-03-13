@@ -11,14 +11,25 @@ if not SECRET_KEY:
 
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
+
+def _env_list(var_name, default=None):
+    """Return a comma-separated env var as a clean list."""
+    raw = os.environ.get(var_name, '')
+    values = [item.strip() for item in raw.split(',') if item.strip()]
+    if values:
+        return values
+    return list(default or [])
+
 # Restrict ALLOWED_HOSTS in production
-ALLOWED_HOSTS = [
+ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', [
     'carshop-9cfj.onrender.com',
+    'carshop-wg0g.onrender.com',
     'localhost',
     '127.0.0.1',
-]
+])
 if DEBUG:
-    ALLOWED_HOSTS.append('*')
+    if '*' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('*')
 
 INSTALLED_APPS = [
     'grappelli',
@@ -141,9 +152,18 @@ if USE_S3_MEDIA:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ==================== CORS Configuration ====================
-CORS_ALLOWED_ORIGINS = [
-    "https://car-shop-dusky.vercel.app",
-]
+CORS_ALLOWED_ORIGINS = _env_list('CORS_ALLOWED_ORIGINS')
+
+# Backward-compatible support for a single frontend URL env var.
+frontend_url = os.environ.get('FRONTEND_URL', '').strip()
+if frontend_url and frontend_url not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append(frontend_url)
+
+if not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS = [
+        'https://car-shop-dusky.vercel.app',
+    ]
+
 if DEBUG:
     CORS_ALLOWED_ORIGINS.extend([
         "http://localhost:3000",
@@ -151,6 +171,9 @@ if DEBUG:
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
     ])
+
+# Remove duplicates while preserving order.
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(CORS_ALLOWED_ORIGINS))
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [

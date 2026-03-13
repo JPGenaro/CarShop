@@ -22,7 +22,7 @@
 
 ### Frontend (Next.js/Vercel)
 - [ ] En Vercel > Settings > Environment Variables, asegurar:
-  - `NEXT_PUBLIC_API_URL` = https://carshop-wg0g.onrender.com
+  - `NEXT_PUBLIC_API_URL` = https://carshop-9cfj.onrender.com/api
 
 ### Base de Datos
 **Actual:** SQLite (solo desarrollo)
@@ -82,12 +82,12 @@ Vercel auto-deploys.
 ### 3. Post-Deployment Testing
 ```bash
 # Backend health check
-curl https://carshop-wg0g.onrender.com/api/repuestos/
+curl https://carshop-9cfj.onrender.com/api/repuestos/
 
 # Frontend-Backend connectivity
 - Abre https://car-shop-dusky.vercel.app
 - Abre DevTools > Network
-- Verifica que los requests vayan a carshop-wg0g.onrender.com
+- Verifica que los requests vayan a carshop-9cfj.onrender.com
 - No debe haber errores de CORS
 ```
 
@@ -95,7 +95,7 @@ curl https://carshop-wg0g.onrender.com/api/repuestos/
 
 ### Headers de Seguridad (Backend)
 ```bash
-curl -I https://carshop-wg0g.onrender.com/api/repuestos/
+curl -I https://carshop-9cfj.onrender.com/api/repuestos/
 # Debería ver:
 # Strict-Transport-Security: max-age=31536000
 # X-Content-Type-Options: nosniff

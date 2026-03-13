@@ -7,7 +7,7 @@ import Footer from '../../components/Footer'
 import { fetchWithAuth } from '../../lib/auth'
 import { useAuth } from '../../context/AuthContext'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-wg0g.onrender.com/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-9cfj.onrender.com/api'
 
 export default function NewRepuesto() {
   const router = useRouter()

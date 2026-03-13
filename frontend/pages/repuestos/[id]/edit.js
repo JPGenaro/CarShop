@@ -10,7 +10,7 @@ import { SkeletonDetail } from '../../../components/Skeleton'
 import { fetchWithAuth } from '../../../lib/auth'
 import { useAuth } from '../../../context/AuthContext'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-wg0g.onrender.com/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-9cfj.onrender.com/api'
 
 export default function EditRepuesto() {
   const router = useRouter()

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-wg0g.onrender.com/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://carshop-9cfj.onrender.com/api'
 
 const FavoritesContext = createContext()
 
